@@ -50,31 +50,30 @@ class ControllerTest extends TestCase
 
     public function testGetUser()
     {
-        $user = new User('user', 'pass');
-        $token = new UsernamePasswordToken($user, 'pass', 'default', array('ROLE_USER'));
+        $currentUserProvider = $this->getMockBuilder('Symfony\Component\Security\Core\User\CurrentUserProvider')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $currentUserProvider
+            ->expects($this->once())
+            ->method('getUser');
+
+        $container = $this->getMock('Symfony\Component\DependencyInjection\ContainerInterface');
+        $container
+            ->expects($this->once())
+            ->method('has')
+            ->with('security.current_user_provider')
+            ->will($this->returnValue(true));
+
+        $container
+            ->expects($this->once())
+            ->method('get')
+            ->with('security.current_user_provider')
+            ->will($this->returnValue($currentUserProvider));
 
         $controller = new TestController();
-        $controller->setContainer($this->getContainerWithTokenStorage($token));
+        $controller->setContainer($container);
 
-        $this->assertSame($controller->getUser(), $user);
-    }
-
-    public function testGetUserAnonymousUserConvertedToNull()
-    {
-        $token = new AnonymousToken('default', 'anon.');
-
-        $controller = new TestController();
-        $controller->setContainer($this->getContainerWithTokenStorage($token));
-
-        $this->assertNull($controller->getUser());
-    }
-
-    public function testGetUserWithEmptyTokenStorage()
-    {
-        $controller = new TestController();
-        $controller->setContainer($this->getContainerWithTokenStorage(null));
-
-        $this->assertNull($controller->getUser());
+        $controller->getUser();
     }
 
     /**
@@ -87,41 +86,13 @@ class ControllerTest extends TestCase
         $container
             ->expects($this->once())
             ->method('has')
-            ->with('security.token_storage')
+            ->with('security.current_user_provider')
             ->will($this->returnValue(false));
 
         $controller = new TestController();
         $controller->setContainer($container);
 
         $controller->getUser();
-    }
-
-    /**
-     * @param $token
-     * @return ContainerInterface
-     */
-    private function getContainerWithTokenStorage($token = null)
-    {
-        $tokenStorage = $this->getMock('Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage');
-        $tokenStorage
-            ->expects($this->once())
-            ->method('getToken')
-            ->will($this->returnValue($token));
-
-        $container = $this->getMock('Symfony\Component\DependencyInjection\ContainerInterface');
-        $container
-            ->expects($this->once())
-            ->method('has')
-            ->with('security.token_storage')
-            ->will($this->returnValue(true));
-
-        $container
-            ->expects($this->once())
-            ->method('get')
-            ->with('security.token_storage')
-            ->will($this->returnValue($tokenStorage));
-
-        return $container;
     }
 }
 

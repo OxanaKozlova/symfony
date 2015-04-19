@@ -62,6 +62,10 @@
             <argument type="service" id="request_stack" />
         </service>
 
+        <service id="security.current_user_provider" class="Symfony\Component\Security\Core\User\CurrentUserProvider">
+            <argument type="service" id="security.token_storage" />
+        </service>
+
         <!-- Authorization related services -->
         <service id="security.access.decision_manager" class="Symfony\Component\Security\Core\Authorization\AccessDecisionManager" public="false">
             <argument type="collection" />

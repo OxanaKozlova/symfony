@@ -289,20 +289,11 @@ abstract class Controller extends ContainerAware
      */
     protected function getUser()
     {
-        if (!$this->container->has('security.token_storage')) {
+        if (!$this->container->has('security.current_user_provider')) {
             throw new \LogicException('The SecurityBundle is not registered in your application.');
         }
 
-        if (null === $token = $this->container->get('security.token_storage')->getToken()) {
-            return;
-        }
-
-        if (!is_object($user = $token->getUser())) {
-            // e.g. anonymous authentication
-            return;
-        }
-
-        return $user;
+        return $this->container->get('security.current_user_provider')->getUser();
     }
 
     /**
