@@ -45,6 +45,13 @@ class Workflow
                 }
             }
         }
+        if ($markingStore instanceof UniqueTransitionInputInterface) {
+            foreach ($definition->getTransitions() as $transition) {
+                if (1 < count($transition->getFroms())) {
+                    throw new LogicException(sprintf('The marking store (%s) of workflow "%s" can not store many places. But the transition "%s" has too many input (%d). Only one is accepted.', get_class($markingStore), $this->name, $transition->getName(), count($transition->getTos())));
+                }
+            }
+        }
     }
 
     /**
@@ -166,7 +173,6 @@ class Workflow
         return $this->name;
     }
 
-
     /**
      * @param object $subject
      * @param string $transitionName
@@ -196,8 +202,8 @@ class Workflow
     }
 
     /**
-     * @param string $subject
-     * @param Marking $marking
+     * @param string       $subject
+     * @param Marking      $marking
      * @param Transition[] $transitions
      *
      * @return Transition|bool false
@@ -295,7 +301,7 @@ class Workflow
     }
 
     /**
-     * @param Marking $marking
+     * @param Marking    $marking
      * @param Transition $transition
      *
      * @return bool
