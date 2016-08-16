@@ -16,6 +16,7 @@ use Symfony\Component\Workflow\Event\Event;
 use Symfony\Component\Workflow\Event\GuardEvent;
 use Symfony\Component\Workflow\Exception\LogicException;
 use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
+use Symfony\Component\Workflow\MarkingStore\UniqueTransitionInputInterface;
 use Symfony\Component\Workflow\MarkingStore\UniqueTransitionOutputInterface;
 
 /**
@@ -177,9 +178,22 @@ class Workflow
 
     private function doCan($subject, Marking $marking, Transition $transition)
     {
-        foreach ($transition->getFroms() as $place) {
-            if (!$marking->has($place)) {
+        if ($this->markingStore instanceof UniqueTransitionInputInterface) {
+            // Marking must have ONE place
+            $preCondition = false;
+            foreach ($transition->getFroms() as $place) {
+                $preCondition = $preCondition || $marking->has($place);
+            }
+
+            if (false === $preCondition) {
                 return false;
+            }
+        } else {
+            // Marking must have ALL places
+            foreach ($transition->getFroms() as $place) {
+                if (!$marking->has($place)) {
+                    return false;
+                }
             }
         }
 

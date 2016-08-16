@@ -14,6 +14,7 @@
 
         <service id="workflow.marking_store.property_accessor" class="Symfony\Component\Workflow\MarkingStore\PropertyAccessorMarkingStore" abstract="true" />
         <service id="workflow.marking_store.scalar" class="Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore" abstract="true" />
+        <service id="workflow.marking_store.state_machine" class="Symfony\Component\Workflow\MarkingStore\StateMachineMarkingStore" abstract="true" />
 
         <service id="workflow.registry" class="Symfony\Component\Workflow\Registry" />
 

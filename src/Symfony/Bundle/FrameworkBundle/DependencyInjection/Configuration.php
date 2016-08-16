@@ -239,7 +239,7 @@ class Configuration implements ConfigurationInterface
                                 ->isRequired()
                                 ->children()
                                     ->enumNode('type')
-                                        ->values(array('property_accessor', 'scalar'))
+                                        ->values(array('property_accessor', 'scalar', 'state_machine'))
                                     ->end()
                                     ->arrayNode('arguments')
                                         ->beforeNormalization()
