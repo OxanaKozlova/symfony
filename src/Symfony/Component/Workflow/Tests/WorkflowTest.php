@@ -132,7 +132,7 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
     public function testCanWithStateMachineMarkingStore()
     {
         $places = array('a', 'b', 'c', 'd');
-        $transitions[] = new Transition('t1', ['a','d'], 'b');
+        $transitions[] = new Transition('t1', array('a','d'), 'b');
         $transitions[] = new Transition('t2', 'b', 'c');
         $transitions[] = new Transition('t3', 'b', 'd');
         $definition = new Definition($places, $transitions);
