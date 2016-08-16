@@ -103,16 +103,7 @@ class Workflow
      */
     public function can($subject, $transitionName)
     {
-        $transitions = $this->definition->getTransitions();
-
-        if (!isset($transitions[$transitionName])) {
-            throw new LogicException(sprintf('Transition "%s" does not exist for workflow "%s".', $transitionName, $this->name));
-        }
-
-        $transition = $transitions[$transitionName];
-        $marking = $this->getMarking($subject);
-
-        return $this->doCan($subject, $marking, $transition);
+        return false !== $this->doCanAndGetTransaction($subject, $transitionName);
     }
 
     /**
@@ -128,14 +119,13 @@ class Workflow
      */
     public function apply($subject, $transitionName)
     {
-        if (!$this->can($subject, $transitionName)) {
+        if (false === $transition = $this->doCanAndGetTransaction($subject, $transitionName)) {
             throw new LogicException(sprintf('Unable to apply transition "%s" for workflow "%s".', $transitionName, $this->name));
         }
 
         // We can shortcut the getMarking method in order to boost performance,
         // since the "can" method already checks the Marking state
         $marking = $this->markingStore->getMarking($subject);
-        $transition = $this->definition->getTransitions()[$transitionName];
 
         $this->leave($subject, $transition, $marking);
 
@@ -163,8 +153,8 @@ class Workflow
         $marking = $this->getMarking($subject);
 
         foreach ($this->definition->getTransitions() as $transition) {
-            if ($this->doCan($subject, $marking, $transition)) {
-                $enabled[$transition->getName()] = $transition;
+            if (false !== $this->doCan($subject, $marking, array($transition))) {
+                $enabled[] = $transition;
             }
         }
 
@@ -176,35 +166,53 @@ class Workflow
         return $this->name;
     }
 
-    private function doCan($subject, Marking $marking, Transition $transition)
+
+    /**
+     * @param object $subject
+     * @param string $transitionName
+     *
+     * @return Transition|bool false
+     */
+    private function doCanAndGetTransaction($subject, $transitionName)
     {
-        if ($this->markingStore instanceof UniqueTransitionInputInterface) {
-            // Marking must have ONE place
-            $preCondition = false;
-            foreach ($transition->getFroms() as $place) {
-                if ($marking->has($place)) {
-                    $preCondition = true;
-                    break;
-                }
-            }
+        $transitions = $this->definition->getTransitions();
 
-            if (false === $preCondition) {
-                return false;
+        $namedTransitions = array_filter(
+            $transitions,
+            function (Transition $transition) use ($transitionName) {
+                return $transitionName === $transition->getName();
             }
-        } else {
-            // Marking must have ALL places
-            foreach ($transition->getFroms() as $place) {
-                if (!$marking->has($place)) {
-                    return false;
-                }
+        );
+
+        if (empty($namedTransitions)) {
+            throw new LogicException(
+                sprintf('Transition "%s" does not exist for workflow "%s".', $transitionName, $this->name)
+            );
+        }
+
+        $marking = $this->getMarking($subject);
+
+        return $this->doCan($subject, $marking, $namedTransitions);
+    }
+
+    /**
+     * @param string $subject
+     * @param Marking $marking
+     * @param Transition[] $transitions
+     *
+     * @return Transition|bool false
+     */
+    private function doCan($subject, Marking $marking, array $transitions)
+    {
+        foreach ($transitions as $transition) {
+            if ($this->markingHasAllFroms($marking, $transition) &&
+                true !== $this->guardTransition($subject, $marking, $transition)
+            ) {
+                return $transition;
             }
         }
 
-        if (true === $this->guardTransition($subject, $marking, $transition)) {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     private function guardTransition($subject, Marking $marking, Transition $transition)
@@ -280,9 +288,26 @@ class Workflow
         $event = new Event($subject, $marking, $initialTransition);
 
         foreach ($this->definition->getTransitions() as $transition) {
-            if ($this->doCan($subject, $marking, $transition)) {
+            if (false !== $this->doCan($subject, $marking, array($transition))) {
                 $this->dispatcher->dispatch(sprintf('workflow.%s.announce.%s', $this->name, $transition->getName()), $event);
             }
         }
+    }
+
+    /**
+     * @param Marking $marking
+     * @param Transition $transition
+     *
+     * @return bool
+     */
+    private function markingHasAllFroms(Marking $marking, Transition $transition)
+    {
+        foreach ($transition->getFroms() as $place) {
+            if (!$marking->has($place)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

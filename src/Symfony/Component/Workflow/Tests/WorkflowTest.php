@@ -132,7 +132,8 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
     public function testCanWithStateMachineMarkingStore()
     {
         $places = array('a', 'b', 'c', 'd');
-        $transitions[] = new Transition('t1', array('a', 'd'), 'b');
+        $transitions[] = new Transition('t1', 'a', 'b');
+        $transitions[] = new Transition('t1', 'd', 'b');
         $transitions[] = new Transition('t2', 'b', 'c');
         $transitions[] = new Transition('t3', 'b', 'd');
         $definition = new Definition($places, $transitions);
@@ -237,13 +238,13 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
         $subject->marking = array('d' => true);
         $transitions = $workflow->getEnabledTransitions($subject);
         $this->assertCount(2, $transitions);
-        $this->assertSame('t3', $transitions['t3']->getName());
-        $this->assertSame('t4', $transitions['t4']->getName());
+        $this->assertSame('t3', $transitions[0]->getName());
+        $this->assertSame('t4', $transitions[1]->getName());
 
         $subject->marking = array('c' => true, 'e' => true);
         $transitions = $workflow->getEnabledTransitions($subject);
         $this->assertCount(1, $transitions);
-        $this->assertSame('t5', $transitions['t5']->getName());
+        $this->assertSame('t5', $transitions[0]->getName());
     }
 
     private function createComplexWorkflow()

@@ -103,6 +103,6 @@ class Definition
             }
         }
 
-        $this->transitions[$name] = $transition;
+        $this->transitions[] = $transition;
     }
 }
