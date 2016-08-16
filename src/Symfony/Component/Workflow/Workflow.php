@@ -180,10 +180,16 @@ class Workflow
     {
         if ($this->markingStore instanceof UniqueTransitionInputInterface) {
             // Marking must have ONE place
+            $preCondition = false;
             foreach ($transition->getFroms() as $place) {
                 if ($marking->has($place)) {
+                    $preCondition = true;
                     break;
                 }
+            }
+
+            if (false === $preCondition) {
+                return false;
             }
         } else {
             // Marking must have ALL places
