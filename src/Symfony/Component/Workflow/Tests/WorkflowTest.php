@@ -144,9 +144,29 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
         // If you are in place a you should be able to apply t1
         $subject->marking = 'a';
         $this->assertTrue($workflow->can($subject, 't1'));
+        $subject->marking = 'd';
+        $this->assertTrue($workflow->can($subject, 't1'));
 
         $subject->marking = 'b';
         $this->assertFalse($workflow->can($subject, 't1'));
+    }
+
+    public function testCanWithMultipleTos()
+    {
+        $places = array('a', 'b', 'c', 'd');
+        $transitions[] = new Transition('t1', 'a', 'b');
+        $transitions[] = new Transition('t1', 'c', 'd');
+        $definition = new Definition($places, $transitions);
+
+        $workflow = new Workflow($definition, new StateMachineMarkingStore());
+        $subject = new \stdClass();
+
+        // If you are in place a you should be able to apply t1
+        $subject->marking = 'a';
+        $this->assertTrue($workflow->can($subject, 't1'));
+
+        $subject->marking = 'c';
+        $this->assertTrue($workflow->can($subject, 't1'));
     }
 
     public function testCanWithGuard()
