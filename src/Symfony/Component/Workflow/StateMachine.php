@@ -20,7 +20,7 @@ class StateMachine extends PetriNet
 
         parent::__construct($definition, $markingStore, $dispatcher, $name);
 
-        $transitionFromNames = [];
+        $transitionFromNames = array();
 
         /** @var Transition $transition */
         foreach ($definition->getTransitions() as $transition) {
