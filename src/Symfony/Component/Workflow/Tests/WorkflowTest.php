@@ -9,7 +9,6 @@ use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 use Symfony\Component\Workflow\MarkingStore\PropertyAccessorMarkingStore;
 use Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore;
-use Symfony\Component\Workflow\MarkingStore\StateMachineMarkingStore;
 use Symfony\Component\Workflow\Transition;
 use Symfony\Component\Workflow\Workflow;
 
@@ -127,46 +126,6 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($workflow->can($subject, 't1'));
         $this->assertFalse($workflow->can($subject, 't2'));
-    }
-
-    public function testCanWithStateMachineMarkingStore()
-    {
-        $places = array('a', 'b', 'c', 'd');
-        $transitions[] = new Transition('t1', 'a', 'b');
-        $transitions[] = new Transition('t1', 'd', 'b');
-        $transitions[] = new Transition('t2', 'b', 'c');
-        $transitions[] = new Transition('t3', 'b', 'd');
-        $definition = new Definition($places, $transitions);
-
-        $workflow = new Workflow($definition, new StateMachineMarkingStore());
-        $subject = new \stdClass();
-
-        // If you are in place a you should be able to apply t1
-        $subject->marking = 'a';
-        $this->assertTrue($workflow->can($subject, 't1'));
-        $subject->marking = 'd';
-        $this->assertTrue($workflow->can($subject, 't1'));
-
-        $subject->marking = 'b';
-        $this->assertFalse($workflow->can($subject, 't1'));
-    }
-
-    public function testCanWithMultipleTos()
-    {
-        $places = array('a', 'b', 'c', 'd');
-        $transitions[] = new Transition('t1', 'a', 'b');
-        $transitions[] = new Transition('t1', 'c', 'd');
-        $definition = new Definition($places, $transitions);
-
-        $workflow = new Workflow($definition, new StateMachineMarkingStore());
-        $subject = new \stdClass();
-
-        // If you are in place a you should be able to apply t1
-        $subject->marking = 'a';
-        $this->assertTrue($workflow->can($subject, 't1'));
-
-        $subject->marking = 'c';
-        $this->assertTrue($workflow->can($subject, 't1'));
     }
 
     public function testCanWithGuard()

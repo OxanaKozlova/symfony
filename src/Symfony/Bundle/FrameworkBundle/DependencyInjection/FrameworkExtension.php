@@ -418,12 +418,13 @@ class FrameworkExtension extends Extension
                 $markingStoreDefinition = new Reference($workflow['marking_store']['service']);
             }
 
-            $workflowDefinition = new DefinitionDecorator('workflow.abstract');
+            $type = $workflow['type'];
+            $workflowDefinition = new DefinitionDecorator($type.'.abstract');
             $workflowDefinition->replaceArgument(0, $definitionDefinition);
             $workflowDefinition->replaceArgument(1, $markingStoreDefinition);
             $workflowDefinition->replaceArgument(3, $name);
 
-            $workflowId = 'workflow.'.$name;
+            $workflowId = $type.'.'.$name;
 
             $container->setDefinition($workflowId, $workflowDefinition);
 
