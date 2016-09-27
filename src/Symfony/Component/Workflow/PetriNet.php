@@ -15,7 +15,7 @@ use Symfony\Component\Workflow\Exception\LogicException;
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-abstract class PetriNet
+class PetriNet
 {
     private $definition;
     private $markingStore;
