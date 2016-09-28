@@ -424,7 +424,7 @@ class FrameworkExtension extends Extension
             $workflowDefinition->replaceArgument(1, $markingStoreDefinition);
             $workflowDefinition->replaceArgument(3, $name);
 
-            $workflowId = $type.'.'.$name;
+            $workflowId = sprintf('%s.%s', $type, $name);
 
             $container->setDefinition($workflowId, $workflowDefinition);
 
