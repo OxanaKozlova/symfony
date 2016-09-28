@@ -9,5 +9,4 @@ namespace Symfony\Component\Workflow\Exception;
  */
 class InvalidDefinitionException extends \LogicException implements ExceptionInterface
 {
-
 }
