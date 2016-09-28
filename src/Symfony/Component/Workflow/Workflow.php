@@ -7,10 +7,8 @@ use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 use Symfony\Component\Workflow\Event\Event;
 use Symfony\Component\Workflow\Event\GuardEvent;
 use Symfony\Component\Workflow\Exception\LogicException;
-use Symfony\Component\Workflow\MarkingStore\UniqueTransitionOutputInterface;
 
 /**
- * A representation of a Petri net.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
@@ -29,23 +27,6 @@ class Workflow
         $this->markingStore = $markingStore;
         $this->dispatcher = $dispatcher;
         $this->name = $name;
-
-        // If the marking can contain only one place, we should control the definition
-        if ($markingStore instanceof UniqueTransitionOutputInterface) {
-            foreach ($definition->getTransitions() as $transition) {
-                if (1 < count($transition->getTos())) {
-                    throw new LogicException(
-                        sprintf(
-                            'The marking store (%s) of workflow "%s" can not store many places. But the transition "%s" has too many output (%d). Only one is accepted.',
-                            get_class($markingStore),
-                            $this->getName(),
-                            $transition->getName(),
-                            count($transition->getTos())
-                        )
-                    );
-                }
-            }
-        }
     }
 
     /**
