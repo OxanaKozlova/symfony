@@ -10,19 +10,13 @@ use Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore;
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-class StateMachine extends PetriNet
+class StateMachine extends Workflow
 {
-    public function __construct(Definition $definition, MarkingStoreInterface $markingStore = null, EventDispatcherInterface $dispatcher = null, $name = 'unnamed')
+    public function __construct(Definition $definition, MarkingStoreInterface $markingStore, EventDispatcherInterface $dispatcher = null, $name = 'unnamed')
     {
-        if (!$markingStore) {
-            $markingStore = new ScalarMarkingStore();
-        }
-
         parent::__construct($definition, $markingStore, $dispatcher, $name);
 
         $transitionFromNames = array();
-
-        /** @var Transition $transition */
         foreach ($definition->getTransitions() as $transition) {
             // Make sure that each transition has exactly one TO
             if (1 !== count($transition->getTos())) {

@@ -419,7 +419,7 @@ class FrameworkExtension extends Extension
             }
 
             $type = $workflow['type'];
-            $workflowDefinition = new DefinitionDecorator($type.'.abstract');
+            $workflowDefinition = new DefinitionDecorator(sprintf('%s.abstract', $type));
             $workflowDefinition->replaceArgument(0, $definitionDefinition);
             $workflowDefinition->replaceArgument(1, $markingStoreDefinition);
             $workflowDefinition->replaceArgument(3, $name);
