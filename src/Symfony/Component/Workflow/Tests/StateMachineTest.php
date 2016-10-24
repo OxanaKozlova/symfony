@@ -36,7 +36,7 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
         $net = new StateMachine($definition);
         $subject = new \stdClass();
 
-        // If you are in place a you should be able to apply t1
+        // If you are in place "a" you should be able to apply "t1"
         $subject->marking = 'a';
         $this->assertTrue($net->can($subject, 't1'));
         $subject->marking = 'd';
@@ -46,21 +46,19 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($net->can($subject, 't1'));
     }
 
-    public function testCanWithMultipleTos()
+    public function testCanWitMultipleTos()
     {
-        $places = array('a', 'b', 'c', 'd');
+        $places = array('a', 'b', 'c');
         $transitions[] = new Transition('t1', 'a', 'b');
-        $transitions[] = new Transition('t1', 'c', 'd');
+        $transitions[] = new Transition('t2', 'a', 'c');
         $definition = new Definition($places, $transitions);
 
         $net = new StateMachine($definition);
         $subject = new \stdClass();
 
-        // If you are in place a you should be able to apply t1
+        // If you are in place "a" you should be able to apply "t1" and "t2"
         $subject->marking = 'a';
         $this->assertTrue($net->can($subject, 't1'));
-
-        $subject->marking = 'c';
-        $this->assertTrue($net->can($subject, 't1'));
+        $this->assertTrue($net->can($subject, 't2'));
     }
 }
