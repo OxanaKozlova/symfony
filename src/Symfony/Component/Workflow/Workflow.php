@@ -132,11 +132,6 @@ class Workflow
         return $marking;
     }
 
-    public function getName()
-    {
-        return $this->name;
-    }
-
     /**
      * Returns all enabled transitions.
      *
@@ -158,7 +153,10 @@ class Workflow
         return $enabled;
     }
 
-
+    public function getName()
+    {
+        return $this->name;
+    }
 
     /**
      * @param object     $subject
