@@ -96,7 +96,7 @@ class Workflow
         $transitions = $this->getTransitions($transitionName);
         $marking = $this->getMarking($subject);
 
-        return null !==  $this->getTransitionForSubject($subject, $marking, $transitions);
+        return null !== $this->getTransitionForSubject($subject, $marking, $transitions);
     }
 
     /**
