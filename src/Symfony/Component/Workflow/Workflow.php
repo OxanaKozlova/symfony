@@ -270,7 +270,8 @@ class Workflow
     }
 
     /**
-     * Return the first Transition in $transitions that is valid for the $subject and $marking.
+     * Return the first Transition in $transitions that is valid for the $subject and $marking. null is returned when
+     * you cannot do any Transition in $transitions on the $subject.
      *
      * @param object       $subject
      * @param Marking      $marking
