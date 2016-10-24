@@ -8,7 +8,7 @@ use Symfony\Component\Workflow\Exception\InvalidDefinitionException;
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-interface DefinitionValidator
+interface DefinitionValidatorInterface
 {
     /**
      * @param Definition $definition

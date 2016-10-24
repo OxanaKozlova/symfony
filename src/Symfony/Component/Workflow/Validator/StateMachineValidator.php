@@ -8,7 +8,7 @@ use Symfony\Component\Workflow\Exception\InvalidDefinitionException;
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-class StateMachineValidator implements DefinitionValidator
+class StateMachineValidator implements DefinitionValidatorInterface
 {
     public function validate(Definition $definition, $name)
     {
