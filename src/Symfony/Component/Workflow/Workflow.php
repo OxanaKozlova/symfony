@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\Workflow;
 
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -26,6 +35,50 @@ class Workflow
         $this->markingStore = $markingStore;
         $this->dispatcher = $dispatcher;
         $this->name = $name;
+    }
+
+    /**
+     * Returns the object's Marking.
+     *
+     * @param object $subject A subject
+     *
+     * @return Marking The Marking
+     *
+     * @throws LogicException
+     */
+    public function getMarking($subject)
+    {
+        $marking = $this->markingStore->getMarking($subject);
+
+        if (!$marking instanceof Marking) {
+            throw new LogicException(sprintf('The value returned by the MarkingStore is not an instance of "%s" for workflow "%s".', Marking::class, $this->name));
+        }
+
+        // check if the subject is already in the workflow
+        if (!$marking->getPlaces()) {
+            if (!$this->definition->getInitialPlace()) {
+                throw new LogicException(sprintf('The Marking is empty and there is no initial place for workflow "%s".', $this->name));
+            }
+            $marking->mark($this->definition->getInitialPlace());
+        }
+
+        // check that the subject has a known place
+        $places = $this->definition->getPlaces();
+        foreach ($marking->getPlaces() as $placeName => $nbToken) {
+            if (!isset($places[$placeName])) {
+                $message = sprintf('Place "%s" is not valid for workflow "%s".', $placeName, $this->name);
+                if (!$places) {
+                    $message .= ' It seems you forgot to add places to the current workflow.';
+                }
+
+                throw new LogicException($message);
+            }
+        }
+
+        // Because the marking could have been initialized, we update the subject
+        $this->markingStore->setMarking($subject, $marking);
+
+        return $marking;
     }
 
     /**
@@ -105,49 +158,7 @@ class Workflow
         return $enabled;
     }
 
-    /**
-     * Returns the object's Marking.
-     *
-     * @param object $subject A subject
-     *
-     * @return Marking The Marking
-     *
-     * @throws LogicException
-     */
-    public function getMarking($subject)
-    {
-        $marking = $this->markingStore->getMarking($subject);
 
-        if (!$marking instanceof Marking) {
-            throw new LogicException(sprintf('The value returned by the MarkingStore is not an instance of "%s" for workflow "%s".', Marking::class, $this->name));
-        }
-
-        // check if the subject is already in the workflow
-        if (!$marking->getPlaces()) {
-            if (!$this->definition->getInitialPlace()) {
-                throw new LogicException(sprintf('The Marking is empty and there is no initial place for workflow "%s".', $this->name));
-            }
-            $marking->mark($this->definition->getInitialPlace());
-        }
-
-        // check that the subject has a known place
-        $places = $this->definition->getPlaces();
-        foreach ($marking->getPlaces() as $placeName => $nbToken) {
-            if (!isset($places[$placeName])) {
-                $message = sprintf('Place "%s" is not valid for workflow "%s".', $placeName, $this->name);
-                if (!$places) {
-                    $message .= ' It seems you forgot to add places to the current workflow.';
-                }
-
-                throw new LogicException($message);
-            }
-        }
-
-        // Because the marking could have been initialized, we update the subject
-        $this->markingStore->setMarking($subject, $marking);
-
-        return $marking;
-    }
 
     /**
      * @param object     $subject
