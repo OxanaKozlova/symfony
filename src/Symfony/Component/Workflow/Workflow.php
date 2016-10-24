@@ -3,10 +3,10 @@
 namespace Symfony\Component\Workflow;
 
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 use Symfony\Component\Workflow\Event\Event;
 use Symfony\Component\Workflow\Event\GuardEvent;
 use Symfony\Component\Workflow\Exception\LogicException;
+use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
