@@ -6,11 +6,13 @@ use Symfony\Component\Workflow\Definition;
 use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\StateMachine;
 use Symfony\Component\Workflow\Transition;
+use Symfony\Component\Workflow\Validator\StateMachineValidator;
 
 class StateMachineTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @expectedException \Symfony\Component\Workflow\Exception\LogicException
+     * @expectedException \Symfony\Component\Workflow\Exception\InvalidDefinitionException
+     * @expectedExceptionMessage A transition from a place/state must have an unique name.
      */
     public function testConstructorWithMultipleTransitionWithSameNameShareInput()
     {
@@ -19,7 +21,7 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
         $transitions[] = new Transition('t1', 'a', 'c');
         $definition = new Definition($places, $transitions);
 
-        $net = new StateMachine($definition);
+        (new StateMachineValidator())->validate($definition, 'foo');
     }
 
     public function testCanWithStateMachineMarkingStore()

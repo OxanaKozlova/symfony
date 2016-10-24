@@ -10,19 +10,21 @@ use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 use Symfony\Component\Workflow\MarkingStore\PropertyAccessorMarkingStore;
 use Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore;
 use Symfony\Component\Workflow\Transition;
+use Symfony\Component\Workflow\Validator\SinglePlaceWorkflowValidator;
 use Symfony\Component\Workflow\Workflow;
 
 class WorkflowTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @expectedException \Symfony\Component\Workflow\Exception\LogicException
-     * @expectedExceptionMessage The marking store (Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore) of workflow "unnamed" can not store many places. But the transition "t1" has too many output (2). Only one is accepted.
+     * @expectedException \Symfony\Component\Workflow\Exception\InvalidDefinitionException
+     * @expectedExceptionMessage The marking store of workflow "foo" can not store many places.
      */
     public function testConstructorWithUniqueTransitionOutputInterfaceAndComplexWorkflow()
     {
         $definition = $this->createComplexWorkflow();
 
-        new Workflow($definition, new ScalarMarkingStore());
+        (new SinglePlaceWorkflowValidator())->validate($definition, 'foo');
+
     }
 
     public function testConstructorWithUniqueTransitionOutputInterfaceAndSimpleWorkflow()
@@ -42,7 +44,7 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
     {
         $subject = new \stdClass();
         $subject->marking = null;
-        $workflow = new Workflow(new Definition(), $this->getMock(MarkingStoreInterface::class));
+        $workflow = new Workflow(new Definition(), $this->getMockBuilder(MarkingStoreInterface::class)->getMock());
 
         $workflow->getMarking($subject);
     }

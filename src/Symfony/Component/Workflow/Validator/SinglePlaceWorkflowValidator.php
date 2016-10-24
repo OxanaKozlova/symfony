@@ -1,8 +1,9 @@
 <?php
 
-namespace Symfony\Component\Workflow\Exception;
+namespace Symfony\Component\Workflow\Validator;
 
 use Symfony\Component\Workflow\Definition;
+use Symfony\Component\Workflow\Exception\InvalidDefinitionException;
 
 /**
  * If the marking can contain only one place, we should control the definition.
