@@ -8,7 +8,6 @@ use Symfony\Component\Workflow\Event\GuardEvent;
 use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 use Symfony\Component\Workflow\MarkingStore\PropertyAccessorMarkingStore;
-use Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore;
 use Symfony\Component\Workflow\Transition;
 use Symfony\Component\Workflow\Validator\SinglePlaceWorkflowValidator;
 use Symfony\Component\Workflow\Workflow;
@@ -24,7 +23,6 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
         $definition = $this->createComplexWorkflow();
 
         (new SinglePlaceWorkflowValidator())->validate($definition, 'foo');
-
     }
 
     public function testSinglePlaceWorkflowValidatorAndSimpleWorkflow()
