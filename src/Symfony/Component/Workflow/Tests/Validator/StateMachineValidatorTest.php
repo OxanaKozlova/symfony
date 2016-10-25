@@ -61,7 +61,7 @@ class StateMachineValidatorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Symfony\Component\Workflow\Exception\InvalidDefinitionException
-     * @expectedExceptionMessage A transition in StateMachine can only have one input..
+     * @expectedExceptionMessage A transition in StateMachine can only have one input.
      */
     public function testWithMultipleFroms()
     {
