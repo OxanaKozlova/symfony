@@ -10,34 +10,7 @@ use Symfony\Component\Workflow\Validator\StateMachineValidator;
 
 class StateMachineTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @expectedException \Symfony\Component\Workflow\Exception\InvalidDefinitionException
-     * @expectedExceptionMessage A transition from a place/state must have an unique name.
-     */
-    public function testConstructorWithMultipleTransitionWithSameNameShareInput()
-    {
-        $places = array('a', 'b', 'c');
-        $transitions[] = new Transition('t1', 'a', 'b');
-        $transitions[] = new Transition('t1', 'a', 'c');
-        $definition = new Definition($places, $transitions);
-
-        (new StateMachineValidator())->validate($definition, 'foo');
-
-        // The graph looks like:
-        //
-        //   +----+     +----+     +---+
-        //   | a  | --> | t1 | --> | b |
-        //   +----+     +----+     +---+
-        //    |
-        //    |
-        //    v
-        //  +----+     +----+
-        //  | t1 | --> | c  |
-        //  +----+     +----+
-
-    }
-
-    public function testCanWithStateMachineMarkingStore()
+    public function testCan()
     {
         $places = array('a', 'b', 'c', 'd');
         $transitions[] = new Transition('t1', 'a', 'b');
@@ -74,7 +47,7 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testCanWitMultipleTos()
+    public function testCanWithMultipleTransition()
     {
         $places = array('a', 'b', 'c');
         $transitions[] = new Transition('t1', 'a', 'b');

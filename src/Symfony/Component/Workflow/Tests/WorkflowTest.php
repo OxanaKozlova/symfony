@@ -15,26 +15,6 @@ use Symfony\Component\Workflow\Workflow;
 class WorkflowTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @expectedException \Symfony\Component\Workflow\Exception\InvalidDefinitionException
-     * @expectedExceptionMessage The marking store of workflow "foo" can not store many places.
-     */
-    public function testSinglePlaceWorkflowValidatorAndComplexWorkflow()
-    {
-        $definition = $this->createComplexWorkflow();
-
-        (new SinglePlaceWorkflowValidator())->validate($definition, 'foo');
-    }
-
-    public function testSinglePlaceWorkflowValidatorAndSimpleWorkflow()
-    {
-        $places = array('a', 'b');
-        $transition = new Transition('t1', 'a', 'b');
-        $definition = new Definition($places, array($transition));
-
-        (new SinglePlaceWorkflowValidator())->validate($definition, 'foo');
-    }
-
-    /**
      * @expectedException \Symfony\Component\Workflow\Exception\LogicException
      * @expectedExceptionMessage The value returned by the MarkingStore is not an instance of "Symfony\Component\Workflow\Marking" for workflow "unnamed".
      */
@@ -226,7 +206,7 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('t5', $transitions[0]->getName());
     }
 
-    private function createComplexWorkflow()
+    protected function createComplexWorkflow()
     {
         $definition = new Definition();
 
