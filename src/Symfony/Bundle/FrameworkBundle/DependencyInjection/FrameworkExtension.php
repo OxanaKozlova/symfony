@@ -416,7 +416,6 @@ class FrameworkExtension extends Extension
                             $definitionDefinition->addMethodCall('addTransition', array(new Definition(Workflow\Transition::class, array($transitionName, $from, $to))));
                         }
                     }
-
                 }
             }
 
@@ -430,7 +429,7 @@ class FrameworkExtension extends Extension
             }
 
             $definitionDefinition->addTag('workflow.definition', array(
-                'name'=> $name,
+                'name' => $name,
                 'type' => $type,
                 'marking_store' => isset($workflow['marking_store']['type']) ? $workflow['marking_store']['type'] : null,
             ));

@@ -9,7 +9,6 @@ use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 use Symfony\Component\Workflow\MarkingStore\PropertyAccessorMarkingStore;
 use Symfony\Component\Workflow\Transition;
-use Symfony\Component\Workflow\Validator\SinglePlaceWorkflowValidator;
 use Symfony\Component\Workflow\Workflow;
 
 class WorkflowTest extends \PHPUnit_Framework_TestCase

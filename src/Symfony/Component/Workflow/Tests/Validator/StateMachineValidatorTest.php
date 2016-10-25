@@ -41,7 +41,7 @@ class StateMachineValidatorTest extends \PHPUnit_Framework_TestCase
     public function testWithMultipleTos()
     {
         $places = array('a', 'b', 'c');
-        $transitions[] = new Transition('t1', 'a', ['b', 'c']);
+        $transitions[] = new Transition('t1', 'a', array('b', 'c'));
         $definition = new Definition($places, $transitions);
 
         (new StateMachineValidator())->validate($definition, 'foo');
@@ -66,7 +66,7 @@ class StateMachineValidatorTest extends \PHPUnit_Framework_TestCase
     public function testWithMultipleFroms()
     {
         $places = array('a', 'b', 'c');
-        $transitions[] = new Transition('t1', ['a', 'b'], 'c');
+        $transitions[] = new Transition('t1', array('a', 'b'), 'c');
         $definition = new Definition($places, $transitions);
 
         (new StateMachineValidator())->validate($definition, 'foo');

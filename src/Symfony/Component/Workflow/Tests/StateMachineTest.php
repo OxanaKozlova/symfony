@@ -6,7 +6,6 @@ use Symfony\Component\Workflow\Definition;
 use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\StateMachine;
 use Symfony\Component\Workflow\Transition;
-use Symfony\Component\Workflow\Validator\StateMachineValidator;
 
 class StateMachineTest extends \PHPUnit_Framework_TestCase
 {
@@ -44,7 +43,6 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
         //                      +----+     +----+
         //                      | t2 | --> | c  |
         //                      +----+     +----+
-
     }
 
     public function testCanWithMultipleTransition()
@@ -73,6 +71,5 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
         // +----+     +----+
         // | t2 | --> | c  |
         // +----+     +----+
-
     }
 }
