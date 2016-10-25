@@ -26,11 +26,14 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\Serializer\Encoder\YamlEncoder;
+use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Mapping\Factory\CacheClassMetadataFactory;
 use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer;
 use Symfony\Component\Workflow;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * FrameworkExtension.
@@ -45,6 +48,7 @@ class FrameworkExtension extends Extension
     private $formConfigEnabled = false;
     private $translationConfigEnabled = false;
     private $sessionConfigEnabled = false;
+    private $annotationsConfigEnabled = false;
 
     /**
      * @var string|null
@@ -67,11 +71,6 @@ class FrameworkExtension extends Extension
         $loader->load('services.xml');
         $loader->load('fragment_renderer.xml');
 
-        // A translator must always be registered (as support is included by
-        // default in the Form component). If disabled, an identity translator
-        // will be used and everything will still work as expected.
-        $loader->load('translation.xml');
-
         // Property access is used by both the Form and the Validator component
         $loader->load('property_access.xml');
 
@@ -81,6 +80,19 @@ class FrameworkExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
+        $this->annotationsConfigEnabled = $this->isConfigEnabled($container, $config['annotations']);
+
+        // A translator must always be registered (as support is included by
+        // default in the Form component). If disabled, an identity translator
+        // will be used and everything will still work as expected.
+        if (class_exists('Symfony\Component\Translation\Translator') || $this->isConfigEnabled($container, $config['form'])) {
+            if (!class_exists('Symfony\Component\Translation\Translator')) {
+                throw new LogicException('Form support cannot be enabled as the Translation component is not installed.');
+            }
+
+            $loader->load('translation.xml');
+        }
+
         if (isset($config['secret'])) {
             $container->setParameter('kernel.secret', $config['secret']);
         }
@@ -89,6 +101,22 @@ class FrameworkExtension extends Extension
         $container->setParameter('kernel.trusted_hosts', $config['trusted_hosts']);
         $container->setParameter('kernel.trusted_proxies', $config['trusted_proxies']);
         $container->setParameter('kernel.default_locale', $config['default_locale']);
+
+        if (!$container->hasParameter('debug.file_link_format')) {
+            if (!$container->hasParameter('templating.helper.code.file_link_format')) {
+                $links = array(
+                    'textmate' => 'txmt://open?url=file://%%f&line=%%l',
+                    'macvim' => 'mvim://open?url=file://%%f&line=%%l',
+                    'emacs' => 'emacs://open?url=file://%%f&line=%%l',
+                    'sublime' => 'subl://open?url=file://%%f&line=%%l',
+                    'phpstorm' => 'phpstorm://open?url=file://%%f&line=%%l',
+                );
+                $ide = $config['ide'];
+
+                $container->setParameter('templating.helper.code.file_link_format', str_replace('%', '%%', ini_get('xdebug.file_link_format') ?: get_cfg_var('xdebug.file_link_format')) ?: (isset($links[$ide]) ? $links[$ide] : $ide));
+            }
+            $container->setParameter('debug.file_link_format', '%templating.helper.code.file_link_format%');
+        }
 
         if (!empty($config['test'])) {
             $loader->load('test.xml');
@@ -116,11 +144,19 @@ class FrameworkExtension extends Extension
         $this->registerSecurityCsrfConfiguration($config['csrf_protection'], $container, $loader);
 
         if ($this->isConfigEnabled($container, $config['assets'])) {
+            if (!class_exists('Symfony\Component\Asset\Package')) {
+                throw new LogicException('Asset support cannot be enabled as the Asset component is not installed.');
+            }
+
             $this->registerAssetsConfiguration($config['assets'], $container, $loader);
         }
 
         if ($this->isConfigEnabled($container, $config['templating'])) {
-            $this->registerTemplatingConfiguration($config['templating'], $config['ide'], $container, $loader);
+            if (!class_exists('Symfony\Component\Templating\PhpEngine')) {
+                throw new LogicException('Templating support cannot be enabled as the Templating component is not installed.');
+            }
+
+            $this->registerTemplatingConfiguration($config['templating'], $container, $loader);
         }
 
         $this->registerValidationConfiguration($config['validation'], $container, $loader);
@@ -131,6 +167,7 @@ class FrameworkExtension extends Extension
         $this->registerProfilerConfiguration($config['profiler'], $container, $loader);
         $this->registerCacheConfiguration($config['cache'], $container);
         $this->registerWorkflowConfiguration($config['workflows'], $container, $loader);
+        $this->registerDebugConfiguration($config['php_errors'], $container, $loader);
 
         if ($this->isConfigEnabled($container, $config['router'])) {
             $this->registerRouterConfiguration($config['router'], $container, $loader);
@@ -145,27 +182,6 @@ class FrameworkExtension extends Extension
 
         if ($this->isConfigEnabled($container, $config['property_info'])) {
             $this->registerPropertyInfoConfiguration($config['property_info'], $container, $loader);
-        }
-
-        $loader->load('debug_prod.xml');
-        $definition = $container->findDefinition('debug.debug_handlers_listener');
-
-        if ($container->hasParameter('templating.helper.code.file_link_format')) {
-            $definition->replaceArgument(5, '%templating.helper.code.file_link_format%');
-        }
-
-        if ($container->getParameter('kernel.debug')) {
-            $definition->replaceArgument(2, E_ALL & ~(E_COMPILE_ERROR | E_PARSE | E_ERROR | E_CORE_ERROR | E_RECOVERABLE_ERROR));
-
-            $loader->load('debug.xml');
-
-            // replace the regular event_dispatcher service with the debug one
-            $definition = $container->findDefinition('event_dispatcher');
-            $definition->setPublic(false);
-            $container->setDefinition('debug.event_dispatcher.parent', $definition);
-            $container->setAlias('event_dispatcher', 'debug.event_dispatcher');
-        } else {
-            $definition->replaceArgument(1, null);
         }
 
         $this->addAnnotatedClassesToCompile(array(
@@ -418,6 +434,43 @@ class FrameworkExtension extends Extension
     }
 
     /**
+     * Loads the debug configuration.
+     *
+     * @param array            $config    A php errors configuration array
+     * @param ContainerBuilder $container A ContainerBuilder instance
+     * @param XmlFileLoader    $loader    An XmlFileLoader instance
+     */
+    private function registerDebugConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
+    {
+        $loader->load('debug_prod.xml');
+
+        $debug = $container->getParameter('kernel.debug');
+
+        if ($debug) {
+            $loader->load('debug.xml');
+
+            // replace the regular event_dispatcher service with the debug one
+            $definition = $container->findDefinition('event_dispatcher');
+            $definition->setPublic(false);
+            $container->setDefinition('debug.event_dispatcher.parent', $definition);
+            $container->setAlias('event_dispatcher', 'debug.event_dispatcher');
+        }
+
+        $definition = $container->findDefinition('debug.debug_handlers_listener');
+
+        if (!$config['log']) {
+            $definition->replaceArgument(1, null);
+        }
+
+        if (!$config['throw']) {
+            $container->setParameter('debug.error_handler.throw_at', 0);
+        }
+
+        $definition->replaceArgument(4, $debug);
+        $definition->replaceArgument(6, $debug);
+    }
+
+    /**
      * Loads the router configuration.
      *
      * @param array            $config    A router configuration array
@@ -429,7 +482,7 @@ class FrameworkExtension extends Extension
         $loader->load('routing.xml');
 
         $container->setParameter('router.resource', $config['resource']);
-        $container->setParameter('router.cache_class_prefix', $container->getParameter('kernel.name').ucfirst($container->getParameter('kernel.environment')));
+        $container->setParameter('router.cache_class_prefix', $container->getParameter('kernel.container_class'));
         $router = $container->findDefinition('router.default');
         $argument = $router->getArgument(2);
         $argument['strict_requirements'] = $config['strict_requirements'];
@@ -531,24 +584,12 @@ class FrameworkExtension extends Extension
      * Loads the templating configuration.
      *
      * @param array            $config    A templating configuration array
-     * @param string           $ide
      * @param ContainerBuilder $container A ContainerBuilder instance
      * @param XmlFileLoader    $loader    An XmlFileLoader instance
      */
-    private function registerTemplatingConfiguration(array $config, $ide, ContainerBuilder $container, XmlFileLoader $loader)
+    private function registerTemplatingConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
     {
         $loader->load('templating.xml');
-
-        if (!$container->hasParameter('templating.helper.code.file_link_format')) {
-            $links = array(
-                'textmate' => 'txmt://open?url=file://%%f&line=%%l',
-                'macvim' => 'mvim://open?url=file://%%f&line=%%l',
-                'emacs' => 'emacs://open?url=file://%%f&line=%%l',
-                'sublime' => 'subl://open?url=file://%%f&line=%%l',
-            );
-
-            $container->setParameter('templating.helper.code.file_link_format', str_replace('%', '%%', ini_get('xdebug.file_link_format') ?: get_cfg_var('xdebug.file_link_format')) ?: (isset($links[$ide]) ? $links[$ide] : $ide));
-        }
 
         $container->setParameter('fragment.renderer.hinclude.global_template', $config['hinclude_default_template']);
 
@@ -735,6 +776,11 @@ class FrameworkExtension extends Extension
         if (!$this->isConfigEnabled($container, $config)) {
             return;
         }
+
+        if (!class_exists('Symfony\Component\Translation\Translator')) {
+            throw new LogicException('Translation support cannot be enabled as the Translator component is not installed.');
+        }
+
         $this->translationConfigEnabled = true;
 
         // Use the "real" translator instead of the identity default
@@ -849,6 +895,10 @@ class FrameworkExtension extends Extension
         $definition->replaceArgument(0, $config['strict_email']);
 
         if (array_key_exists('enable_annotations', $config) && $config['enable_annotations']) {
+            if (!$this->annotationsConfigEnabled) {
+                throw new \LogicException('"enable_annotations" on the validator cannot be set as Annotations support is disabled.');
+            }
+
             $validatorBuilder->addMethodCall('enableAnnotationMapping', array(new Reference('annotation_reader')));
         }
 
@@ -858,13 +908,17 @@ class FrameworkExtension extends Extension
             }
         }
 
-        if (!$container->getParameter('kernel.debug')) {
+        if (isset($config['cache']) && $config['cache']) {
+            @trigger_error('The "framework.validation.cache" option is deprecated since Symfony 3.2 and will be removed in 4.0. Configure the "cache.validator" service under "framework.cache.pools" instead.', E_USER_DEPRECATED);
+
             $container->setParameter(
                 'validator.mapping.cache.prefix',
                 'validator_'.$this->getKernelRootHash($container)
             );
 
             $validatorBuilder->addMethodCall('setMetadataCache', array(new Reference($config['cache'])));
+        } elseif (!$container->getParameter('kernel.debug')) {
+            $validatorBuilder->addMethodCall('setMetadataCache', array(new Reference('validator.mapping.cache.symfony')));
         }
     }
 
@@ -910,6 +964,14 @@ class FrameworkExtension extends Extension
 
     private function registerAnnotationsConfiguration(array $config, ContainerBuilder $container, $loader)
     {
+        if (!$this->annotationsConfigEnabled) {
+            return;
+        }
+
+        if (!class_exists('Doctrine\Common\Annotations\Annotation')) {
+            throw new LogicException('Annotations cannot be enabled as the Doctrine Annotation library is not installed.');
+        }
+
         $loader->load('annotations.xml');
 
         if ('none' !== $config['cache']) {
@@ -975,6 +1037,10 @@ class FrameworkExtension extends Extension
             return;
         }
 
+        if (!class_exists('Symfony\Component\Security\Csrf\CsrfToken')) {
+            throw new LogicException('CSRF support cannot be enabled as the Security CSRF component is not installed.');
+        }
+
         if (!$this->sessionConfigEnabled) {
             throw new \LogicException('CSRF protection needs sessions to be enabled.');
         }
@@ -1013,11 +1079,27 @@ class FrameworkExtension extends Extension
             $definition->addTag('serializer.normalizer', array('priority' => -900));
         }
 
+        if (class_exists(YamlEncoder::class) && defined('Symfony\Component\Yaml\Yaml::DUMP_OBJECT')) {
+            $definition = $container->register('serializer.encoder.yaml', YamlEncoder::class);
+            $definition->setPublic(false);
+            $definition->addTag('serializer.encoder');
+        }
+
+        if (class_exists(CsvEncoder::class)) {
+            $definition = $container->register('serializer.encoder.csv', CsvEncoder::class);
+            $definition->setPublic(false);
+            $definition->addTag('serializer.encoder');
+        }
+
         $loader->load('serializer.xml');
         $chainLoader = $container->getDefinition('serializer.mapping.chain_loader');
 
         $serializerLoaders = array();
         if (isset($config['enable_annotations']) && $config['enable_annotations']) {
+            if (!$this->annotationsConfigEnabled) {
+                throw new \LogicException('"enable_annotations" on the serializer cannot be set as Annotations support is disabled.');
+            }
+
             $annotationLoader = new Definition(
                 'Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader',
                  array(new Reference('annotation_reader'))
@@ -1067,6 +1149,7 @@ class FrameworkExtension extends Extension
         }
 
         $chainLoader->replaceArgument(0, $serializerLoaders);
+        $container->getDefinition('serializer.mapping.cache_warmer')->replaceArgument(0, $serializerLoaders);
 
         if (isset($config['cache']) && $config['cache']) {
             @trigger_error('The "framework.serializer.cache" option is deprecated since Symfony 3.1 and will be removed in 4.0. Configure the "cache.serializer" service under "framework.cache.pools" instead.', E_USER_DEPRECATED);
@@ -1079,12 +1162,12 @@ class FrameworkExtension extends Extension
             $container->getDefinition('serializer.mapping.class_metadata_factory')->replaceArgument(
                 1, new Reference($config['cache'])
             );
-        } elseif (!$container->getParameter('kernel.debug')) {
+        } elseif (!$container->getParameter('kernel.debug') && class_exists(CacheClassMetadataFactory::class)) {
             $cacheMetadataFactory = new Definition(
                 CacheClassMetadataFactory::class,
                 array(
                     new Reference('serializer.mapping.cache_class_metadata_factory.inner'),
-                    new Reference('cache.serializer'),
+                    new Reference('serializer.mapping.cache.symfony'),
                 )
             );
             $cacheMetadataFactory->setPublic(false);

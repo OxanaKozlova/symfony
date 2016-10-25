@@ -188,7 +188,7 @@ EOTXT
 
         $this->assertStringMatchesFormat(
             <<<EOTXT
-Unknown resource @{$res}
+Closed resource @{$res}
 
 EOTXT
             ,
@@ -228,6 +228,9 @@ EOTXT
         putenv('DUMP_STRING_LENGTH=');
     }
 
+    /**
+     * @requires function Twig_Template::getSourceContext
+     */
     public function testThrowingCaster()
     {
         $out = fopen('php://memory', 'r+b');
@@ -259,20 +262,7 @@ EOTXT
 
         $data = $cloner->cloneVar($out);
         $dumper->dump($data, $out);
-        rewind($out);
-        $out = stream_get_contents($out);
-
-        if (method_exists($twig, 'getSource')) {
-            $twig = <<<EOTXT
-foo.twig: {
-        1: foo bar
-        2:   twig source
-        3: 
-      }
-EOTXT;
-        } else {
-            $twig = '%A';
-        }
+        $out = stream_get_contents($out, -1, 0);
 
         $r = defined('HHVM_VERSION') ? '' : '#%d';
         $this->assertStringMatchesFormat(
@@ -288,26 +278,30 @@ stream resource {@{$ref}
   ⚠: Symfony\Component\VarDumper\Exception\ThrowingCasterException {{$r}
     #message: "Unexpected Exception thrown from a caster: Foobar"
     -trace: {
-      %d. {$twig}
-      %d. %sTemplate.php: {
-        %d: try {
-        %d:     \$this->doDisplay(\$context, \$blocks);
-        %d: } catch (Twig_Error \$e) {
+      bar.twig:%d: {
+        : foo bar
+        :   twig source
+        : 
       }
-      %d. %sTemplate.php: {
-        %d: {
-        %d:     \$this->displayWithErrorHandling(\$this->env->mergeGlobals(\$context), array_merge(\$this->blocks, \$blocks));
-        %d: }
+      %sTemplate.php:%d: {
+        : try {
+        :     \$this->doDisplay(\$context, \$blocks);
+        : } catch (Twig_Error \$e) {
       }
-      %d. %sTemplate.php: {
-        %d: try {
-        %d:     \$this->display(\$context);
-        %d: } catch (Exception \$e) {
+      %sTemplate.php:%d: {
+        : {
+        :     \$this->displayWithErrorHandling(\$this->env->mergeGlobals(\$context), array_merge(\$this->blocks, \$blocks));
+        : }
       }
-      %d. %sCliDumperTest.php: {
-        %d:         }
-        {$line}:     };'),
-        %d: ));
+      %sTemplate.php:%d: {
+        : try {
+        :     \$this->display(\$context);
+        : } catch (Exception \$e) {
+      }
+      %sCliDumperTest.php:{$line}: {
+        :         }
+        :     };'),
+        : ));
       }
     }
   }
@@ -328,11 +322,8 @@ EOTXT
         $dumper->setColors(false);
         $cloner = new VarCloner();
 
-        $out = fopen('php://memory', 'r+b');
         $data = $cloner->cloneVar($var);
-        $dumper->dump($data, $out);
-        rewind($out);
-        $out = stream_get_contents($out);
+        $out = $dumper->dump($data, true);
 
         $r = defined('HHVM_VERSION') ? '' : '#%d';
         $this->assertStringMatchesFormat(
@@ -458,6 +449,21 @@ array:1 [
 EOTXT
             ,
             $out
+        );
+    }
+
+    public function testIncompleteClass()
+    {
+        $unserializeCallbackHandler = ini_set('unserialize_callback_func', null);
+        $var = unserialize('O:8:"Foo\Buzz":0:{}');
+        ini_set('unserialize_callback_func', $unserializeCallbackHandler);
+
+        $this->assertDumpMatchesFormat(
+            <<<EOTXT
+__PHP_Incomplete_Class(Foo\Buzz) {}
+EOTXT
+            ,
+            $var
         );
     }
 

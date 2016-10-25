@@ -93,7 +93,7 @@ class Definition
     public function setDecoratedService($id, $renamedId = null, $priority = 0)
     {
         if ($renamedId && $id == $renamedId) {
-            throw new \InvalidArgumentException(sprintf('The decorated service inner name for "%s" must be different than the service name itself.', $id));
+            throw new InvalidArgumentException(sprintf('The decorated service inner name for "%s" must be different than the service name itself.', $id));
         }
 
         if (null === $id) {
@@ -668,7 +668,7 @@ class Definition
     /**
      * Sets autowired.
      *
-     * @param $autowired
+     * @param bool $autowired
      *
      * @return Definition The current instance
      */

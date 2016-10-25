@@ -16,6 +16,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\CacheItem;
+use Symfony\Component\Cache\Exception\InvalidArgumentException;
 
 /**
  * @author Nicolas Grekas <p@tchwork.com>
@@ -32,9 +33,17 @@ abstract class AbstractAdapter implements AdapterInterface, LoggerAwareInterface
     private $createCacheItem;
     private $mergeByLifetime;
 
+    /**
+     * @var int|null The maximum length to enforce for identifiers or null when no limit applies
+     */
+    protected $maxIdLength;
+
     protected function __construct($namespace = '', $defaultLifetime = 0)
     {
-        $this->namespace = '' === $namespace ? '' : $this->getId($namespace);
+        $this->namespace = '' === $namespace ? '' : $this->getId($namespace).':';
+        if (null !== $this->maxIdLength && strlen($namespace) > $this->maxIdLength - 24) {
+            throw new InvalidArgumentException(sprintf('Namespace must be %d chars max, %d given ("%s")', $this->maxIdLength - 24, strlen($namespace), $namespace));
+        }
         $this->createCacheItem = \Closure::bind(
             function ($key, $value, $isHit) use ($defaultLifetime) {
                 $item = new CacheItem();
@@ -370,24 +379,71 @@ abstract class AbstractAdapter implements AdapterInterface, LoggerAwareInterface
         }
     }
 
+    /**
+     * Like the native unserialize() function but throws an exception if anything goes wrong.
+     *
+     * @param string $value
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    protected static function unserialize($value)
+    {
+        if ('b:0;' === $value) {
+            return false;
+        }
+        $unserializeCallbackHandler = ini_set('unserialize_callback_func', __CLASS__.'::handleUnserializeCallback');
+        try {
+            if (false !== $value = unserialize($value)) {
+                return $value;
+            }
+            throw new \DomainException('Failed to unserialize cached value');
+        } catch (\Error $e) {
+            throw new \ErrorException($e->getMessage(), $e->getCode(), E_ERROR, $e->getFile(), $e->getLine());
+        } finally {
+            ini_set('unserialize_callback_func', $unserializeCallbackHandler);
+        }
+    }
+
     private function getId($key)
     {
         CacheItem::validateKey($key);
 
-        return $this->namespace.$key;
+        if (null === $this->maxIdLength) {
+            return $this->namespace.$key;
+        }
+        if (strlen($id = $this->namespace.$key) > $this->maxIdLength) {
+            $id = $this->namespace.substr_replace(base64_encode(md5($key, true)), ':', -2);
+        }
+
+        return $id;
     }
 
     private function generateItems($items, &$keys)
     {
         $f = $this->createCacheItem;
 
-        foreach ($items as $id => $value) {
-            yield $keys[$id] => $f($keys[$id], $value, true);
-            unset($keys[$id]);
+        try {
+            foreach ($items as $id => $value) {
+                $key = $keys[$id];
+                unset($keys[$id]);
+                yield $key => $f($key, $value, true);
+            }
+        } catch (\Exception $e) {
+            CacheItem::log($this->logger, 'Failed to fetch requested items', array('keys' => array_values($keys), 'exception' => $e));
         }
 
         foreach ($keys as $key) {
             yield $key => $f($key, null, false);
         }
+    }
+
+    /**
+     * @internal
+     */
+    public static function handleUnserializeCallback($class)
+    {
+        throw new \DomainException('Class not found: '.$class);
     }
 }

@@ -181,7 +181,7 @@ class YamlFileLoader extends FileLoader
 
             foreach ($service as $key => $value) {
                 if (!in_array($key, array('alias', 'public'))) {
-                    @trigger_error(sprintf('The configuration key "%s" is unsupported for alias definition "%s" in "%s". Allowed configuration keys are "alias" and "public". The YamlFileLoader will raise an exception in Symfony 4.0, instead of silently ignoring unsupported attributes.', $key, $id, $file), E_USER_DEPRECATED);
+                    @trigger_error(sprintf('The configuration key "%s" is unsupported for the service "%s" which is defined as an alias in "%s". Allowed configuration keys for service aliases are "alias" and "public". The YamlFileLoader will raise an exception in Symfony 4.0, instead of silently ignoring unsupported attributes.', $key, $id, $file), E_USER_DEPRECATED);
                 }
             }
 
@@ -452,9 +452,9 @@ class YamlFileLoader extends FileLoader
     {
         if (is_array($value)) {
             $value = array_map(array($this, 'resolveServices'), $value);
-        } elseif (is_string($value) &&  0 === strpos($value, '@=')) {
+        } elseif (is_string($value) && 0 === strpos($value, '@=')) {
             return new Expression(substr($value, 2));
-        } elseif (is_string($value) &&  0 === strpos($value, '@')) {
+        } elseif (is_string($value) && 0 === strpos($value, '@')) {
             if (0 === strpos($value, '@@')) {
                 $value = substr($value, 1);
                 $invalidBehavior = null;

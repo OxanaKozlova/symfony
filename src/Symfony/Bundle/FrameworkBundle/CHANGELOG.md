@@ -4,8 +4,14 @@ CHANGELOG
 3.2.0
 -----
 
- * The `Controller::getUser()` method has been deprecated and will be removed in
-   Symfony 4.0; typehint the security user object in the action instead.
+ * Removed `doctrine/annotations` from the list of required dependencies in `composer.json`
+ * Removed `symfony/security-core` and `symfony/security-csrf` from the list of required dependencies in `composer.json`
+ * Removed `symfony/templating` from the list of required dependencies in `composer.json`
+ * Removed `symfony/translation` from the list of required dependencies in `composer.json`
+ * Removed `symfony/asset` from the list of required dependencies in `composer.json`
+ * The `Resources/public/images/*` files have been removed.
+ * The `Resources/public/css/*.css` files have been removed (they are now inlined in TwigBundle).
+ * Added possibility to prioritize form type extensions with `'priority'` attribute on tags `form.type_extension` 
 
 3.1.0
 -----

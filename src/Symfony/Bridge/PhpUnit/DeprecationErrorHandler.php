@@ -68,7 +68,7 @@ class DeprecationErrorHandler
             'other' => array(),
         );
         $deprecationHandler = function ($type, $msg, $file, $line, $context) use (&$deprecations, $getMode) {
-            if (E_USER_DEPRECATED !== $type || DeprecationErrorHandler::MODE_DISABLED === $mode = $getMode()) {
+            if ((E_USER_DEPRECATED !== $type && E_DEPRECATED !== $type) || DeprecationErrorHandler::MODE_DISABLED === $mode = $getMode()) {
                 return \PHPUnit_Util_ErrorHandler::handleError($type, $msg, $file, $line, $context);
             }
 
@@ -195,7 +195,7 @@ class DeprecationErrorHandler
     {
         if ('\\' === DIRECTORY_SEPARATOR) {
             return
-                0 >= version_compare('10.0.10586', PHP_WINDOWS_VERSION_MAJOR.'.'.PHP_WINDOWS_VERSION_MINOR.'.'.PHP_WINDOWS_VERSION_BUILD)
+                '10.0.10586' === PHP_WINDOWS_VERSION_MAJOR.'.'.PHP_WINDOWS_VERSION_MINOR.'.'.PHP_WINDOWS_VERSION_BUILD
                 || false !== getenv('ANSICON')
                 || 'ON' === getenv('ConEmuANSI')
                 || 'xterm' === getenv('TERM');

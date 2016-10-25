@@ -105,7 +105,7 @@ EOF
                 $template .= fread(STDIN, 1024);
             }
 
-            return $this->display($input, $output, $io, array($this->validate($twig, $template, uniqid('sf_'))));
+            return $this->display($input, $output, $io, array($this->validate($twig, $template, uniqid('sf_', true))));
         }
 
         $filesInfo = $this->getFilesInfo($twig, $filenames);
@@ -142,7 +142,7 @@ EOF
         try {
             $temporaryLoader = new \Twig_Loader_Array(array((string) $file => $template));
             $twig->setLoader($temporaryLoader);
-            $nodeTree = $twig->parse($twig->tokenize($template, (string) $file));
+            $nodeTree = $twig->parse($twig->tokenize(new \Twig_Source($template, (string) $file)));
             $twig->compile($nodeTree);
             $twig->setLoader($realLoader);
         } catch (\Twig_Error $e) {
@@ -202,7 +202,7 @@ EOF
             }
         });
 
-        $output->writeln(json_encode($filesInfo, JSON_PRETTY_PRINT));
+        $output->writeln(json_encode($filesInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
         return min($errors, 1);
     }

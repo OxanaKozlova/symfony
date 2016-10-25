@@ -939,7 +939,7 @@ class ProcessTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider provideMethodsThatNeedATerminatedProcess
-     * @expectedException Symfony\Component\Process\Exception\LogicException
+     * @expectedException \Symfony\Component\Process\Exception\LogicException
      * @expectedExceptionMessage Process must be terminated before calling
      */
     public function testMethodsThatNeedATerminatedProcess($method)
@@ -1376,7 +1376,7 @@ class ProcessTest extends \PHPUnit_Framework_TestCase
         $expected = array('BAR' => 'BAZ', 'FOO' => 'BAR');
         $env = array_intersect_key(unserialize($process->getOutput()), $expected);
 
-        $this->assertSame($expected, $env);
+        $this->assertEquals($expected, $env);
     }
 
     public function testInheritEnvDisabled()

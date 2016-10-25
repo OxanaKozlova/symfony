@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 
 /**
  * @author Nicolas Grekas <p@tchwork.com>
@@ -36,6 +37,7 @@ class CachePoolPass implements CompilerPassInterface
             }
         }
 
+        $aliases = $container->getAliases();
         $attributes = array(
             'provider',
             'namespace',
@@ -56,7 +58,10 @@ class CachePoolPass implements CompilerPassInterface
                 $tags[0]['namespace'] = $this->getNamespace($namespaceSuffix, $id);
             }
             if (isset($tags[0]['clearer'])) {
-                $clearer = $container->getDefinition($tags[0]['clearer']);
+                $clearer = strtolower($tags[0]['clearer']);
+                while (isset($aliases[$clearer])) {
+                    $clearer = (string) $aliases[$clearer];
+                }
             } else {
                 $clearer = null;
             }
@@ -73,11 +78,11 @@ class CachePoolPass implements CompilerPassInterface
                 unset($tags[0][$attr]);
             }
             if (!empty($tags[0])) {
-                throw new \InvalidArgumentException(sprintf('Invalid "cache.pool" tag for service "%s": accepted attributes are "clearer", "provider", "namespace" and "default_lifetime", found "%s".', $id, implode('", "', array_keys($tags[0]))));
+                throw new InvalidArgumentException(sprintf('Invalid "cache.pool" tag for service "%s": accepted attributes are "clearer", "provider", "namespace" and "default_lifetime", found "%s".', $id, implode('", "', array_keys($tags[0]))));
             }
 
             if (null !== $clearer) {
-                $clearer->addMethodCall('addPool', array(new Reference($id)));
+                $pool->addTag('cache.pool', array('clearer' => $clearer));
             }
         }
     }

@@ -37,9 +37,9 @@ class ApcuAdapter extends AbstractAdapter
         if (null !== $version) {
             CacheItem::validateKey($version);
 
-            if (!apcu_exists($version.':'.$namespace)) {
+            if (!apcu_exists($version.'@'.$namespace)) {
                 $this->clear($namespace);
-                apcu_add($version.':'.$namespace, null);
+                apcu_add($version.'@'.$namespace, null);
             }
         }
     }
@@ -49,7 +49,11 @@ class ApcuAdapter extends AbstractAdapter
      */
     protected function doFetch(array $ids)
     {
-        return apcu_fetch($ids);
+        try {
+            return apcu_fetch($ids);
+        } catch (\Error $e) {
+            throw new \ErrorException($e->getMessage(), $e->getCode(), E_ERROR, $e->getFile(), $e->getLine());
+        }
     }
 
     /**

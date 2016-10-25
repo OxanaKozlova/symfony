@@ -44,6 +44,7 @@ class PassConfig
             new ResolveDefinitionTemplatesPass(),
             new DecoratorServicePass(),
             new ResolveParameterPlaceHoldersPass(),
+            new FactoryReturnTypePass(),
             new CheckDefinitionValidityPass(),
             new ResolveReferencesToAliasesPass(),
             new ResolveInvalidReferencesPass(),

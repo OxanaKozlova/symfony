@@ -25,6 +25,7 @@ class RedisAdapter extends AbstractAdapter
     private static $defaultConnectionOptions = array(
         'class' => null,
         'persistent' => 0,
+        'persistent_id' => null,
         'timeout' => 0,
         'read_timeout' => 0,
         'retry_interval' => 0,
@@ -69,7 +70,7 @@ class RedisAdapter extends AbstractAdapter
         if (0 !== strpos($dsn, 'redis://')) {
             throw new InvalidArgumentException(sprintf('Invalid Redis DSN: %s does not start with "redis://"', $dsn));
         }
-        $params = preg_replace_callback('#^redis://(?:([^@]*)@)?#', function ($m) use (&$auth) {
+        $params = preg_replace_callback('#^redis://(?:(?:[^:@]*+:)?([^@]*+)@)?#', function ($m) use (&$auth) {
             if (isset($m[1])) {
                 $auth = $m[1];
             }
@@ -99,9 +100,9 @@ class RedisAdapter extends AbstractAdapter
         $class = null === $params['class'] ? (extension_loaded('redis') ? \Redis::class : \Predis\Client::class) : $params['class'];
 
         if (is_a($class, \Redis::class, true)) {
-            $connect = empty($params['persistent']) ? 'connect' : 'pconnect';
+            $connect = $params['persistent'] || $params['persistent_id'] ? 'pconnect' : 'connect';
             $redis = new $class();
-            @$redis->{$connect}($params['host'], $params['port'], $params['timeout'], null, $params['retry_interval']);
+            @$redis->{$connect}($params['host'], $params['port'], $params['timeout'], $params['persistent_id'], $params['retry_interval']);
 
             if (@!$redis->isConnected()) {
                 $e = ($e = error_get_last()) && preg_match('/^Redis::p?connect\(\): (.*)/', $e['message'], $e) ? sprintf(' (%s)', $e[1]) : '';
@@ -134,19 +135,15 @@ class RedisAdapter extends AbstractAdapter
      */
     protected function doFetch(array $ids)
     {
-        $result = array();
-
         if ($ids) {
             $values = $this->redis->mGet($ids);
             $index = 0;
             foreach ($ids as $id) {
                 if ($value = $values[$index++]) {
-                    $result[$id] = unserialize($value);
+                    yield $id => parent::unserialize($value);
                 }
             }
         }
-
-        return $result;
     }
 
     /**

@@ -116,6 +116,7 @@ class Configuration implements ConfigurationInterface
         $this->addPropertyAccessSection($rootNode);
         $this->addPropertyInfoSection($rootNode);
         $this->addCacheSection($rootNode);
+        $this->addPhpErrorsSection($rootNode);
 
         return $treeBuilder;
     }
@@ -567,7 +568,7 @@ class Configuration implements ConfigurationInterface
                     ->info('validation configuration')
                     ->canBeEnabled()
                     ->children()
-                        ->scalarNode('cache')->defaultValue('validator.mapping.cache.symfony')->end()
+                        ->scalarNode('cache')->end()
                         ->booleanNode('enable_annotations')->defaultFalse()->end()
                         ->arrayNode('static_method')
                             ->defaultValue(array('loadValidatorMetadata'))
@@ -592,7 +593,7 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('annotations')
                     ->info('annotation configuration')
-                    ->addDefaultsIfNotSet()
+                    ->canBeDisabled()
                     ->children()
                         ->scalarNode('cache')->defaultValue('php_array')->end()
                         ->scalarNode('file_cache_dir')->defaultValue('%kernel.cache_dir%/annotations')->end()
@@ -679,13 +680,37 @@ class Configuration implements ConfigurationInterface
                                     ->scalarNode('provider')
                                         ->info('The service name to use as provider when the specified adapter needs one.')
                                     ->end()
-                                    ->scalarNode('clearer')->defaultValue('cache.default_clearer')->end()
+                                    ->scalarNode('clearer')->end()
                                 ->end()
                             ->end()
                             ->validate()
                                 ->ifTrue(function ($v) { return isset($v['cache.app']) || isset($v['cache.system']); })
                                 ->thenInvalid('"cache.app" and "cache.system" are reserved names')
                             ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+    }
+
+    private function addPhpErrorsSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('php_errors')
+                    ->info('PHP errors handling configuration')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('log')
+                            ->info('Use the app logger instead of the PHP logger for logging PHP errors.')
+                            ->defaultValue($this->debug)
+                            ->treatNullLike($this->debug)
+                        ->end()
+                        ->booleanNode('throw')
+                            ->info('Throw PHP errors as \ErrorException instances.')
+                            ->defaultValue($this->debug)
+                            ->treatNullLike($this->debug)
                         ->end()
                     ->end()
                 ->end()

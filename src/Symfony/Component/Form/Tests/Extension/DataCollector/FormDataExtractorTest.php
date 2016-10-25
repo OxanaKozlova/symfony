@@ -18,28 +18,15 @@ use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\Tests\Fixtures\FixedDataTransformer;
-use Symfony\Component\HttpKernel\DataCollector\Util\ValueExporter;
-
-class FormDataExtractorTest_SimpleValueExporter extends ValueExporter
-{
-    /**
-     * {@inheritdoc}
-     */
-    public function exportValue($value, $depth = 1, $deep = false)
-    {
-        return is_object($value) ? sprintf('object(%s)', get_class($value)) : var_export($value, true);
-    }
-}
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\VarDumper\Test\VarDumperTestTrait;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var FormDataExtractorTest_SimpleValueExporter
-     */
-    private $valueExporter;
+    use VarDumperTestTrait;
 
     /**
      * @var FormDataExtractor
@@ -58,8 +45,7 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->valueExporter = new FormDataExtractorTest_SimpleValueExporter();
-        $this->dataExtractor = new FormDataExtractor($this->valueExporter);
+        $this->dataExtractor = new FormDataExtractor();
         $this->dispatcher = $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
         $this->factory = $this->getMock('Symfony\Component\Form\FormFactoryInterface');
     }
@@ -79,7 +65,7 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
             'id' => 'name',
             'name' => 'name',
             'type_class' => 'stdClass',
-            'synchronized' => 'true',
+            'synchronized' => true,
             'passed_options' => array(),
             'resolved_options' => array(),
         ), $this->dataExtractor->extractConfiguration($form));
@@ -109,11 +95,11 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
             'id' => 'name',
             'name' => 'name',
             'type_class' => 'stdClass',
-            'synchronized' => 'true',
+            'synchronized' => true,
             'passed_options' => array(
-                'a' => "'bar'",
-                'b' => "'foo'",
-                'c' => "'baz'",
+                'a' => 'bar',
+                'b' => 'foo',
+                'c' => 'baz',
             ),
             'resolved_options' => array(),
         ), $this->dataExtractor->extractConfiguration($form));
@@ -140,12 +126,12 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
             'id' => 'name',
             'name' => 'name',
             'type_class' => 'stdClass',
-            'synchronized' => 'true',
+            'synchronized' => true,
             'passed_options' => array(),
             'resolved_options' => array(
-                'a' => "'bar'",
-                'b' => "'foo'",
-                'c' => "'baz'",
+                'a' => 'bar',
+                'b' => 'foo',
+                'c' => 'baz',
             ),
         ), $this->dataExtractor->extractConfiguration($form));
     }
@@ -176,7 +162,7 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
             'id' => 'grandParent_parent_name',
             'name' => 'name',
             'type_class' => 'stdClass',
-            'synchronized' => 'true',
+            'synchronized' => true,
             'passed_options' => array(),
             'resolved_options' => array(),
         ), $this->dataExtractor->extractConfiguration($form));
@@ -190,7 +176,7 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'default_data' => array(
-                'norm' => "'Foobar'",
+                'norm' => 'Foobar',
             ),
             'submitted_data' => array(),
         ), $this->dataExtractor->extractDefaultData($form));
@@ -208,8 +194,8 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'default_data' => array(
-                'norm' => "'Bar'",
-                'model' => "'Foo'",
+                'norm' => 'Bar',
+                'model' => 'Foo',
             ),
             'submitted_data' => array(),
         ), $this->dataExtractor->extractDefaultData($form));
@@ -227,8 +213,8 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'default_data' => array(
-                'norm' => "'Foo'",
-                'view' => "'Bar'",
+                'norm' => 'Foo',
+                'view' => 'Bar',
             ),
             'submitted_data' => array(),
         ), $this->dataExtractor->extractDefaultData($form));
@@ -242,10 +228,10 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'submitted_data' => array(
-                'norm' => "'Foobar'",
+                'norm' => 'Foobar',
             ),
             'errors' => array(),
-            'synchronized' => 'true',
+            'synchronized' => true,
         ), $this->dataExtractor->extractSubmittedData($form));
     }
 
@@ -262,11 +248,11 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'submitted_data' => array(
-                'norm' => "'Bar'",
-                'model' => "'Foo'",
+                'norm' => 'Bar',
+                'model' => 'Foo',
             ),
             'errors' => array(),
-            'synchronized' => 'true',
+            'synchronized' => true,
         ), $this->dataExtractor->extractSubmittedData($form));
     }
 
@@ -283,11 +269,11 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'submitted_data' => array(
-                'norm' => "'Foo'",
-                'view' => "'Bar'",
+                'norm' => 'Foo',
+                'view' => 'Bar',
             ),
             'errors' => array(),
-            'synchronized' => 'true',
+            'synchronized' => true,
         ), $this->dataExtractor->extractSubmittedData($form));
     }
 
@@ -300,12 +286,12 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'submitted_data' => array(
-                'norm' => "'Foobar'",
+                'norm' => 'Foobar',
             ),
             'errors' => array(
                 array('message' => 'Invalid!', 'origin' => spl_object_hash($form), 'trace' => array()),
             ),
-            'synchronized' => 'true',
+            'synchronized' => true,
         ), $this->dataExtractor->extractSubmittedData($form));
     }
 
@@ -321,12 +307,12 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'submitted_data' => array(
-                'norm' => "'Foobar'",
+                'norm' => 'Foobar',
             ),
             'errors' => array(
                 array('message' => 'Invalid!', 'origin' => spl_object_hash($form), 'trace' => array()),
             ),
-            'synchronized' => 'true',
+            'synchronized' => true,
         ), $this->dataExtractor->extractSubmittedData($form));
     }
 
@@ -335,24 +321,44 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
         $form = $this->createBuilder('name')->getForm();
 
         $exception = new \Exception();
+        $violation = new ConstraintViolation('Foo', 'Foo', array(), 'Root', 'property.path', 'Invalid!', null, null, null, $exception);
 
         $form->submit('Foobar');
-        $form->addError(new FormError('Invalid!', null, array(), null, $exception));
+        $form->addError(new FormError('Invalid!', null, array(), null, $violation));
+        $origin = spl_object_hash($form);
 
-        $this->assertSame(array(
-            'submitted_data' => array(
-                'norm' => "'Foobar'",
-            ),
-            'errors' => array(
-                array('message' => 'Invalid!', 'origin' => spl_object_hash($form), 'trace' => array(
-                    array(
-                        'class' => "'Exception'",
-                        'message' => "''",
-                    ),
-                )),
-            ),
-            'synchronized' => 'true',
-        ), $this->dataExtractor->extractSubmittedData($form));
+        $this->assertDumpMatchesFormat(<<<EODUMP
+array:3 [
+  "submitted_data" => array:1 [
+    "norm" => "Foobar"
+  ]
+  "errors" => array:1 [
+    0 => array:3 [
+      "message" => "Invalid!"
+      "origin" => "$origin"
+      "trace" => array:2 [
+        0 => Symfony\Component\Validator\ConstraintViolation {
+          -message: "Foo"
+          -messageTemplate: "Foo"
+          -parameters: []
+          -plural: null
+          -root: "Root"
+          -propertyPath: "property.path"
+          -invalidValue: "Invalid!"
+          -constraint: null
+          -code: null
+          -cause: Exception {%A}
+        }
+        1 => Exception {#1}
+      ]
+    ]
+  ]
+  "synchronized" => true
+]
+EODUMP
+            ,
+            $this->dataExtractor->extractSubmittedData($form)
+        );
     }
 
     public function testExtractSubmittedDataRemembersIfNonSynchronized()
@@ -370,11 +376,11 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(array(
             'submitted_data' => array(
-                'norm' => "'Foobar'",
-                'model' => 'NULL',
+                'norm' => 'Foobar',
+                'model' => null,
             ),
             'errors' => array(),
-            'synchronized' => 'false',
+            'synchronized' => false,
         ), $this->dataExtractor->extractSubmittedData($form));
     }
 
@@ -394,11 +400,11 @@ class FormDataExtractorTest extends \PHPUnit_Framework_TestCase
             'id' => 'foo_bar',
             'name' => 'bar',
             'view_vars' => array(
-                'a' => "'bar'",
-                'b' => "'foo'",
-                'c' => "'baz'",
-                'id' => "'foo_bar'",
-                'name' => "'bar'",
+                'a' => 'bar',
+                'b' => 'foo',
+                'c' => 'baz',
+                'id' => 'foo_bar',
+                'name' => 'bar',
             ),
         ), $this->dataExtractor->extractViewVariables($view));
     }

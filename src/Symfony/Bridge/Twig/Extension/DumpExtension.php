@@ -69,16 +69,12 @@ class DumpExtension extends \Twig_Extension
         }
 
         $dump = fopen('php://memory', 'r+b');
-        $prevOutput = $this->dumper->setOutput($dump);
+        $this->dumper->setCharset($env->getCharset());
 
         foreach ($vars as $value) {
-            $this->dumper->dump($this->cloner->cloneVar($value));
+            $this->dumper->dump($this->cloner->cloneVar($value), $dump);
         }
 
-        $this->dumper->setOutput($prevOutput);
-
-        rewind($dump);
-
-        return stream_get_contents($dump);
+        return stream_get_contents($dump, -1, 0);
     }
 }

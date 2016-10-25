@@ -211,12 +211,12 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 'static_method' => array('loadValidatorMetadata'),
                 'translation_domain' => 'validators',
                 'strict_email' => false,
-                'cache' => 'validator.mapping.cache.symfony',
             ),
             'annotations' => array(
                 'cache' => 'php_array',
                 'file_cache_dir' => '%kernel.cache_dir%/annotations',
                 'debug' => true,
+                'enabled' => true,
             ),
             'serializer' => array(
                 'enabled' => false,
@@ -274,6 +274,10 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 'default_redis_provider' => 'redis://localhost',
             ),
             'workflows' => array(),
+            'php_errors' => array(
+                'log' => true,
+                'throw' => true,
+            ),
         );
     }
 }

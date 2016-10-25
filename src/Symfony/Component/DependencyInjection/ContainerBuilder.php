@@ -21,6 +21,7 @@ use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\Config\Resource\ResourceInterface;
 use Symfony\Component\DependencyInjection\LazyProxy\Instantiator\InstantiatorInterface;
@@ -49,11 +50,6 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      * @var Definition[]
      */
     private $definitions = array();
-
-    /**
-     * @var Definition[]
-     */
-    private $obsoleteDefinitions = array();
 
     /**
      * @var Alias[]
@@ -93,6 +89,16 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      * @var string[] with tag names used by findTaggedServiceIds
      */
     private $usedTags = array();
+
+    /**
+     * @var string[][] A map of env var names to their placeholders
+     */
+    private $envPlaceholders = array();
+
+    /**
+     * @var int[] A map of env vars to their resolution counter.
+     */
+    private $envCounters = array();
 
     private $compiled = false;
 
@@ -356,21 +362,9 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     {
         $id = strtolower($id);
 
-        if ($this->isFrozen()) {
+        if ($this->isFrozen() && (isset($this->definitions[$id]) && !$this->definitions[$id]->isSynthetic())) {
             // setting a synthetic service on a frozen container is alright
-            if (
-                (!isset($this->definitions[$id]) && !isset($this->obsoleteDefinitions[$id]))
-                    ||
-                (isset($this->definitions[$id]) && !$this->definitions[$id]->isSynthetic())
-                    ||
-                (isset($this->obsoleteDefinitions[$id]) && !$this->obsoleteDefinitions[$id]->isSynthetic())
-            ) {
-                throw new BadMethodCallException(sprintf('Setting service "%s" on a frozen container is not allowed.', $id));
-            }
-        }
-
-        if (isset($this->definitions[$id])) {
-            $this->obsoleteDefinitions[$id] = $this->definitions[$id];
+            throw new BadMethodCallException(sprintf('Setting service "%s" for an unknown or non-synthetic service definition on a frozen container is not allowed.', $id));
         }
 
         unset($this->definitions[$id], $this->aliasDefinitions[$id]);
@@ -429,7 +423,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             return $service;
         }
 
-        if (!array_key_exists($id, $this->definitions) && isset($this->aliasDefinitions[$id])) {
+        if (!isset($this->definitions[$id]) && isset($this->aliasDefinitions[$id])) {
             return $this->get($this->aliasDefinitions[$id]);
         }
 
@@ -498,6 +492,18 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             }
 
             $this->extensionConfigs[$name] = array_merge($this->extensionConfigs[$name], $container->getExtensionConfig($name));
+        }
+
+        if ($this->getParameterBag() instanceof EnvPlaceholderParameterBag && $container->getParameterBag() instanceof EnvPlaceholderParameterBag) {
+            $this->getParameterBag()->mergeEnvPlaceholders($container->getParameterBag());
+        }
+
+        foreach ($container->envCounters as $env => $count) {
+            if (!isset($this->envCounters[$env])) {
+                $this->envCounters[$env] = $count;
+            } else {
+                $this->envCounters[$env] += $count;
+            }
         }
     }
 
@@ -569,8 +575,11 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
         }
 
         $this->extensionConfigs = array();
+        $bag = $this->getParameterBag();
 
         parent::compile();
+
+        $this->envPlaceholders = $bag instanceof EnvPlaceholderParameterBag ? $bag->getEnvPlaceholders() : array();
     }
 
     /**
@@ -767,7 +776,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function hasDefinition($id)
     {
-        return array_key_exists(strtolower($id), $this->definitions);
+        return isset($this->definitions[strtolower($id)]);
     }
 
     /**
@@ -783,7 +792,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     {
         $id = strtolower($id);
 
-        if (!array_key_exists($id, $this->definitions)) {
+        if (!isset($this->definitions[$id])) {
             throw new ServiceNotFoundException($id);
         }
 
@@ -1011,6 +1020,56 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     public function getExpressionLanguageProviders()
     {
         return $this->expressionLanguageProviders;
+    }
+
+    /**
+     * Resolves env parameter placeholders in a string.
+     *
+     * @param string      $string    The string to resolve
+     * @param string|null $format    A sprintf() format to use as replacement for env placeholders or null to use the default parameter format
+     * @param array       &$usedEnvs Env vars found while resolving are added to this array
+     *
+     * @return string The string with env parameters resolved
+     */
+    public function resolveEnvPlaceholders($string, $format = null, array &$usedEnvs = null)
+    {
+        $bag = $this->getParameterBag();
+        $envPlaceholders = $bag instanceof EnvPlaceholderParameterBag ? $bag->getEnvPlaceholders() : $this->envPlaceholders;
+
+        if (null === $format) {
+            $format = '%%env(%s)%%';
+        }
+
+        foreach ($envPlaceholders as $env => $placeholders) {
+            foreach ($placeholders as $placeholder) {
+                if (false !== stripos($string, $placeholder)) {
+                    $string = str_ireplace($placeholder, sprintf($format, $env), $string);
+                    $usedEnvs[$env] = $env;
+                    $this->envCounters[$env] = isset($this->envCounters[$env]) ? 1 + $this->envCounters[$env] : 1;
+                }
+            }
+        }
+
+        return $string;
+    }
+
+    /**
+     * Get statistics about env usage.
+     *
+     * @return int[] The number of time each env vars has been resolved
+     */
+    public function getEnvCounters()
+    {
+        $bag = $this->getParameterBag();
+        $envPlaceholders = $bag instanceof EnvPlaceholderParameterBag ? $bag->getEnvPlaceholders() : $this->envPlaceholders;
+
+        foreach ($envPlaceholders as $env => $placeholders) {
+            if (!isset($this->envCounters[$env])) {
+                $this->envCounters[$env] = 0;
+            }
+        }
+
+        return $this->envCounters;
     }
 
     /**
