@@ -22,6 +22,19 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
         $definition = new Definition($places, $transitions);
 
         (new StateMachineValidator())->validate($definition, 'foo');
+
+        // The graph looks like:
+        //
+        //   +----+     +----+     +---+
+        //   | a  | --> | t1 | --> | b |
+        //   +----+     +----+     +---+
+        //    |
+        //    |
+        //    v
+        //  +----+     +----+
+        //  | t1 | --> | c  |
+        //  +----+     +----+
+
     }
 
     public function testCanWithStateMachineMarkingStore()
@@ -44,6 +57,21 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
 
         $subject->marking = 'b';
         $this->assertFalse($net->can($subject, 't1'));
+
+        // The graph looks like:
+        //
+        //                        +-------------------------------+
+        //                        v                               |
+        // +---+     +----+     +----+     +----+     +---+     +----+
+        // | a | --> | t1 | --> | b  | --> | t3 | --> | d | --> | t1 |
+        // +---+     +----+     +----+     +----+     +---+     +----+
+        //                        |
+        //                        |
+        //                        v
+        //                      +----+     +----+
+        //                      | t2 | --> | c  |
+        //                      +----+     +----+
+
     }
 
     public function testCanWitMultipleTos()
@@ -60,5 +88,18 @@ class StateMachineTest extends \PHPUnit_Framework_TestCase
         $subject->marking = 'a';
         $this->assertTrue($net->can($subject, 't1'));
         $this->assertTrue($net->can($subject, 't2'));
+
+        // The graph looks like:
+        //
+        // +----+     +----+     +---+
+        // | a  | --> | t1 | --> | b |
+        // +----+     +----+     +---+
+        //   |
+        //   |
+        //   v
+        // +----+     +----+
+        // | t2 | --> | c  |
+        // +----+     +----+
+
     }
 }
