@@ -13,6 +13,7 @@ namespace Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\Workflow\Validator\DefinitionValidatorInterface;
 use Symfony\Component\Workflow\Validator\SinglePlaceWorkflowValidator;
 use Symfony\Component\Workflow\Validator\StateMachineValidator;
@@ -34,6 +35,16 @@ class ValidateWorkflowsPass implements CompilerPassInterface
         foreach ($taggedServices as $id => $tags) {
             $definition = $container->get($id);
             foreach ($tags as $tag) {
+                if (empty($tag['name'])) {
+                    throw new RuntimeException(sprintf('The "name" for the tag "workflow.definition" of service "%s" must be set.', $id));
+                }
+                if (empty($tag['type'])) {
+                    throw new RuntimeException(sprintf('The "type" for the tag "workflow.definition" of service "%s" must be set.', $id));
+                }
+                if (empty($tag['marking_store'])) {
+                    throw new RuntimeException(sprintf('The "marking_store" for the tag "workflow.definition" of service "%s" must be set.', $id));
+                }
+
                 $this->getValidator($tag)->validate($definition, $tag['name']);
             }
         }
