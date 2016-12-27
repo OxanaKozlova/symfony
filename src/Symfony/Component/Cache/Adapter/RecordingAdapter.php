@@ -13,7 +13,6 @@ namespace Symfony\Component\Cache\Adapter;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 /**
  * An adapter that logs and collects all your cache calls.
@@ -24,12 +23,12 @@ use Symfony\Component\Cache\Adapter\AdapterInterface;
 final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterface
 {
     /**
-     * @type array
+     * @var array
      */
-    private $calls = [];
+    private $calls = array();
 
     /**
-     * @type CacheItemPoolInterface
+     * @var CacheItemPoolInterface
      */
     private $cachePool;
 
@@ -49,11 +48,11 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
      *
      * @return object
      */
-    private function timeCall($name, array $arguments = [])
+    private function timeCall($name, array $arguments = array())
     {
-        $start  = microtime(true);
-        $result = call_user_func_array([$this->cachePool, $name], $arguments);
-        $time   = microtime(true) - $start;
+        $start = microtime(true);
+        $result = call_user_func_array(array($this->cachePool, $name), $arguments);
+        $time = microtime(true) - $start;
 
         $object = (object) compact('name', 'arguments', 'start', 'time', 'result');
 
@@ -62,8 +61,8 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
 
     public function getItem($key)
     {
-        $call        = $this->timeCall(__FUNCTION__, [$key]);
-        $result      = $call->result;
+        $call = $this->timeCall(__FUNCTION__, array($key));
+        $result = $call->result;
         $call->isHit = $result->isHit();
 
         // Display the result in a good way depending on the data type
@@ -80,7 +79,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
 
     public function hasItem($key)
     {
-        $call = $this->timeCall(__FUNCTION__, [$key]);
+        $call = $this->timeCall(__FUNCTION__, array($key));
         $this->addCall($call);
 
         return $call->result;
@@ -88,7 +87,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
 
     public function deleteItem($key)
     {
-        $call = $this->timeCall(__FUNCTION__, [$key]);
+        $call = $this->timeCall(__FUNCTION__, array($key));
         $this->addCall($call);
 
         return $call->result;
@@ -96,11 +95,11 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
 
     public function save(CacheItemInterface $item)
     {
-        $key   = $item->getKey();
+        $key = $item->getKey();
         $value = $this->getValueRepresentation($item->get());
 
-        $call            = $this->timeCall(__FUNCTION__, [$item]);
-        $call->arguments = ['<CacheItem>', $key, $value];
+        $call = $this->timeCall(__FUNCTION__, array($item));
+        $call->arguments = array('<CacheItem>', $key, $value);
         $this->addCall($call);
 
         return $call->result;
@@ -108,20 +107,20 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
 
     public function saveDeferred(CacheItemInterface $item)
     {
-        $key   = $item->getKey();
+        $key = $item->getKey();
         $value = $this->getValueRepresentation($item->get());
 
-        $call            = $this->timeCall(__FUNCTION__, [$item]);
-        $call->arguments = ['<CacheItem>', $key, $value];
+        $call = $this->timeCall(__FUNCTION__, array($item));
+        $call->arguments = array('<CacheItem>', $key, $value);
         $this->addCall($call);
 
         return $call->result;
     }
 
-    public function getItems(array $keys = [])
+    public function getItems(array $keys = array())
     {
-        $call         = $this->timeCall(__FUNCTION__, [$keys]);
-        $result       = $call->result;
+        $call = $this->timeCall(__FUNCTION__, array($keys));
+        $result = $call->result;
         $call->result = sprintf('<DATA:%s>', gettype($result));
         $this->addCall($call);
 
@@ -130,7 +129,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
 
     public function clear()
     {
-        $call = $this->timeCall(__FUNCTION__, []);
+        $call = $this->timeCall(__FUNCTION__, array());
         $this->addCall($call);
 
         return $call->result;
@@ -138,7 +137,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
 
     public function deleteItems(array $keys)
     {
-        $call = $this->timeCall(__FUNCTION__, [$keys]);
+        $call = $this->timeCall(__FUNCTION__, array($keys));
         $this->addCall($call);
 
         return $call->result;
@@ -180,7 +179,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     private function getValueRepresentation($value)
     {
         $type = gettype($value);
-        if (in_array($type, ['boolean', 'integer', 'double', 'string', 'NULL'])) {
+        if (in_array($type, array('boolean', 'integer', 'double', 'string', 'NULL'))) {
             $rep = $value;
         } elseif ($type === 'array') {
             $rep = json_encode($value);

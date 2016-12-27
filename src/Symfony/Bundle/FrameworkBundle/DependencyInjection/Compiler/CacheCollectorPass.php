@@ -33,7 +33,7 @@ class CacheCollectorPass implements CompilerPassInterface
         }
 
         $collectorDefinition = $container->getDefinition('data_collector.cache');
-        $serviceIds          = $container->findTaggedServiceIds('cache.pool');
+        $serviceIds = $container->findTaggedServiceIds('cache.pool');
 
         foreach (array_keys($serviceIds) as $id) {
             if ($container->getDefinition($id)->isAbstract()) {
@@ -46,7 +46,7 @@ class CacheCollectorPass implements CompilerPassInterface
                 ->setPublic(false);
 
             // Tell the collector to add the new instance
-            $collectorDefinition->addMethodCall('addInstance', [$id, new Reference($id)]);
+            $collectorDefinition->addMethodCall('addInstance', array($id, new Reference($id)));
         }
     }
 }
