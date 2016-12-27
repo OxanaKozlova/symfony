@@ -1,0 +1,120 @@
+{#
+ # This file is part of php-cache\cache-bundle package.
+ #
+ # (c) 2015-2015 Aaron Scherer <aequasi@gmail.com>
+ #
+ # This source file is subject to the MIT license that is bundled
+ # with this source code in the file LICENSE.
+ #}
+
+{% extends 'WebProfilerBundle:Profiler:layout.html.twig' %}
+
+{% block head %}
+    {{ parent() }}
+    <style>
+        .color-red {
+            color:red;
+        }
+    </style>
+{% endblock head %}
+
+{% block toolbar %}
+    {% if collector.totals.calls > 0 %}
+        {% set icon %}
+            {{ include('@WebProfiler/Icon/cache.svg') }}
+            <span class="sf-toolbar-value">{{ collector.totals.calls }}</span>
+            <span class="sf-toolbar-info-piece-additional-detail">
+                <span class="sf-toolbar-label">in</span>
+                <span class="sf-toolbar-value">{{ '%0.2f'|format(collector.totals.time * 1000) }}</span>
+                <span class="sf-toolbar-label">ms</span>
+            </span>
+        {% endset %}
+        {% set text %}
+        <div class="sf-toolbar-info-piece">
+            <b>Cache Calls</b>
+            <span>{{ collector.totals.calls }}</span>
+        </div>
+        <div class="sf-toolbar-info-piece">
+            <b>Total time</b>
+            <span>{{ '%0.2f'|format(collector.totals.time * 1000) }} ms</span>
+        </div>
+        <div class="sf-toolbar-info-piece">
+            <b>Cache hits</b>
+            <span>{{ collector.totals.hits }}/{{ collector.totals.reads }} ({{ collector.totals.ratio }})</span>
+        </div>
+        <div class="sf-toolbar-info-piece">
+            <b>Cache writes</b>
+            <span>{{ collector.totals.writes }}</span>
+        </div>
+        {% endset %}
+        {% include 'WebProfilerBundle:Profiler:toolbar_item.html.twig' with { 'link': profiler_url } %}
+    {% endif %}
+{% endblock %}
+
+{% block menu %}
+    <span class="label {{ collector.totals.calls == 0 ? 'disabled' }}">
+    <span class="icon">
+        {{ include('@WebProfiler/Icon/cache.svg') }}
+    </span>
+    <strong>Cache</strong>
+    <span class="count">
+        <span>{{ collector.totals.calls }}</span>
+        <span>{{ '%0.0f'|format(collector.totals.time * 1000) }} ms</span>
+    </span>
+</span>
+{% endblock %}
+
+{% block panel %}
+    <h2>Cache</h2>
+    {% for name, calls in collector.calls %}
+        <h3>Statistics for '{{ name }}'</h3>
+        <table>
+            <thead>
+                <tr>
+                    {% for key, value in collector.statistics[name] %}
+                        <th>{{ key|capitalize }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    {% for key, value in collector.statistics[name] %}
+                        {% if key == 'time' %}
+                            <td>{{ '%0.2f'|format(value * 1000) }} ms</td>
+                        {% else %}
+                            <td>{{ value }}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Calls for '{{ name }}'</h3>
+
+        {% if not collector.totals.calls %}
+            <p>
+                <em>No calls.</em>
+            </p>
+        {% else %}
+            <ul class="alt">
+                {% for i, call in calls %}
+                    <li class="{{ i is odd ? 'odd' : 'even' }}">
+                        <div>
+                            <strong>Name</strong>: {{ call.name }}<br />
+                            <strong>Arguments</strong>: {{ call.arguments|json_encode[:140] }}<br />
+                            <strong>Results</strong>: {% if call.result == false %}
+                                <span class="color-red">Miss</span>
+                            {% else %}
+                                {{ call.result[:140] }}
+                            {% endif %}<br />
+                        </div>
+                        <small>
+                            <strong>Time</strong>: {{ '%0.2f'|format(call.time * 1000) }} ms
+                        </small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endfor %}
+
+{% endblock %}

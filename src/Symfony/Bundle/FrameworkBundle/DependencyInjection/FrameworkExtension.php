@@ -175,8 +175,8 @@ class FrameworkExtension extends Extension
         $this->registerSsiConfiguration($config['ssi'], $container, $loader);
         $this->registerFragmentsConfiguration($config['fragments'], $container, $loader);
         $this->registerTranslatorConfiguration($config['translator'], $container, $loader);
-        $this->registerProfilerConfiguration($config['profiler'], $container, $loader);
         $this->registerCacheConfiguration($config['cache'], $container);
+        $this->registerProfilerConfiguration($config['profiler'], $container, $loader);
         $this->registerWorkflowConfiguration($config['workflows'], $container, $loader);
         $this->registerDebugConfiguration($config['php_errors'], $container, $loader);
 
@@ -349,6 +349,7 @@ class FrameworkExtension extends Extension
 
         $loader->load('profiling.xml');
         $loader->load('collectors.xml');
+        $loader->load('cache_debug.xml');
 
         if ($this->formConfigEnabled) {
             $loader->load('form_debug.xml');
