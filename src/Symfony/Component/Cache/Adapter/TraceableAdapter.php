@@ -21,7 +21,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  * @author Aaron Scherer <aequasi@gmail.com>
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-final class RecordingAdapter implements AdapterInterface
+final class TraceableAdapter implements AdapterInterface
 {
     /**
      * @var array
@@ -131,11 +131,31 @@ final class RecordingAdapter implements AdapterInterface
         $result = $call->result;
         $hits = 0;
         $items = array();
-        foreach ($result as $item) {
-            $items[] = $item;
-            if ($item->isHit()) {
-                ++$hits;
+        if (is_array($result)) {
+            foreach ($result as $item) {
+                $items[] = $item;
+                if ($item->isHit()) {
+                    ++$hits;
+                }
             }
+        } elseif ($result instanceof \Traversable) {
+            $f = function() use ($result, $call) {
+                $hits = 0;
+                $items = array();
+                foreach ($result as $item) {
+                    $items[] = $item;
+                    if ($item->isHit()) {
+                        ++$hits;
+                    }
+
+                    $call->result = $this->getValueRepresentation($items);
+                    $call->hits = $hits;
+                    $call->count = count($items);
+
+                    yield $item;
+                }
+            };
+            $result = $f();
         }
 
         $call->result = $this->getValueRepresentation($items);

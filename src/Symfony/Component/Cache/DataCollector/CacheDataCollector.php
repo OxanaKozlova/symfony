@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Cache\DataCollector;
 
-use Symfony\Component\Cache\Adapter\RecordingAdapter;
+use Symfony\Component\Cache\Adapter\TraceableAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
@@ -23,15 +23,15 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 class CacheDataCollector extends DataCollector
 {
     /**
-     * @var RecordingAdapter[]
+     * @var TraceableAdapter[]
      */
     private $instances = array();
 
     /**
      * @param string           $name
-     * @param RecordingAdapter $instance
+     * @param TraceableAdapter $instance
      */
-    public function addInstance($name, RecordingAdapter $instance)
+    public function addInstance($name, TraceableAdapter $instance)
     {
         $this->instances[$name] = $instance;
     }
