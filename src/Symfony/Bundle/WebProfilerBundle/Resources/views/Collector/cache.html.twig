@@ -25,7 +25,7 @@
             <span class="sf-toolbar-value">{{ collector.totals.calls }}</span>
             <span class="sf-toolbar-info-piece-additional-detail">
                 <span class="sf-toolbar-label">in</span>
-                <span class="sf-toolbar-value">{{ collector.totals.time|number_format }}</span>
+                <span class="sf-toolbar-value">{{ '%0.2f'|format(collector.totals.time * 1000) }}</span>
                 <span class="sf-toolbar-label">ms</span>
             </span>
         {% endset %}
@@ -36,7 +36,7 @@
         </div>
         <div class="sf-toolbar-info-piece">
             <b>Total time</b>
-            <span>{{ collector.totals.time|number_format }} ms</span>
+            <span>{{ '%0.2f'|format(collector.totals.time * 1000) }} ms</span>
         </div>
         <div class="sf-toolbar-info-piece">
             <b>Cache hits</b>
@@ -59,7 +59,7 @@
     <strong>Cache</strong>
     <span class="count">
         <span>{{ collector.totals.calls }}</span>
-        <span>{{ collector.totals.time|number_format }} ms</span>
+        <span>{{ '%0.2f'|format(collector.totals.time * 1000) }} ms</span>
     </span>
 </span>
 {% endblock %}
@@ -80,7 +80,7 @@
                 <tr>
                     {% for key, value in collector.statistics[name] %}
                         {% if key == 'time' %}
-                            <td>{{ value|number_format }} ms</td>
+                            <td>{{ '%0.2f'|format(1000*value) }} ms</td>
                         {% else %}
                             <td>{{ value }}</td>
                         {% endif %}
@@ -101,7 +101,7 @@
                     <li class="{{ i is odd ? 'odd' : 'even' }}">
                         <div>
                             <strong>Name</strong>: {{ call.name }}<br />
-                            <strong>Arguments</strong>: {{ profiler_dump(call.arguments, maxDepth=2) }}<br />
+                            <strong>Arguments</strong>: {{ profiler_dump(call.argument, maxDepth=2) }}<br />
                             <strong>Results</strong>: {% if call.result == false %}
                                 <span class="color-red">Miss</span>
                             {% else %}
@@ -109,7 +109,7 @@
                             {% endif %}<br />
                         </div>
                         <small>
-                            <strong>Time</strong>: {{ call.time|number_format }} ms
+                            <strong>Time</strong>: {{ '%0.2f'|format((call.end - call.start) * 1000) }} ms
                         </small>
                     </li>
                 {% endfor %}

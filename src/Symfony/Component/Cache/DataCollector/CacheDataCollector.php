@@ -12,6 +12,7 @@
 namespace Symfony\Component\Cache\DataCollector;
 
 use Symfony\Component\Cache\Adapter\TraceableAdapter;
+use Symfony\Component\Cache\Adapter\TraceableAdapterEvent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
@@ -49,8 +50,8 @@ class CacheDataCollector extends DataCollector
                 if (isset($call->result)) {
                     $call->result = $this->cloneVar($call->result);
                 }
-                if (isset($call->arguments)) {
-                    $call->arguments = $this->cloneVar($call->arguments);
+                if (isset($call->argument)) {
+                    $call->argument = $this->cloneVar($call->argument);
                 }
             }
             $this->data['instances']['calls'][$name] = $calls;
@@ -114,21 +115,22 @@ class CacheDataCollector extends DataCollector
                 'writes' => 0,
                 'deletes' => 0,
             );
+            /** @var TraceableAdapterEvent $call */
             foreach ($calls as $call) {
                 $statistics[$name]['calls'] += 1;
-                $statistics[$name]['time'] += $call->time;
+                $statistics[$name]['time'] += $call->end - $call->start;
                 if ($call->name === 'getItem') {
                     $statistics[$name]['reads'] += 1;
-                    if ($call->isHit) {
+                    if ($call->hits) {
                         $statistics[$name]['hits'] += 1;
                     } else {
                         $statistics[$name]['misses'] += 1;
                     }
                 } elseif ($call->name === 'getItems') {
-                    $count = $call->count;
+                    $count = $call->hits + $call->misses;
                     $statistics[$name]['reads'] += $count;
                     $statistics[$name]['hits'] += $call->hits;
-                    $statistics[$name]['misses'] += $count - $call->hits;
+                    $statistics[$name]['misses'] += $count - $call->misses;
                 } elseif ($call->name === 'hasItem') {
                     $statistics[$name]['reads'] += 1;
                     if ($call->result === false) {
