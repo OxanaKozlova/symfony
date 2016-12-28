@@ -1,12 +1,12 @@
 <?php
 
 /*
- * This file is part of php-cache\cache-bundle package.
+ * This file is part of the Symfony package.
  *
- * (c) 2015-2015 Aaron Scherer <aequasi@gmail.com>, Tobias Nyholm <tobias.nyholm@gmail.com>
+ * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler;
