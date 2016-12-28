@@ -131,11 +131,11 @@ final class RecordingAdapter implements AdapterInterface
         $call = $this->timeCall(__FUNCTION__, array($keys));
         $result = $call->result;
         $hits = 0;
-        $items = [];
+        $items = array();
         foreach ($result as $item) {
             $items[] = $item;
             if ($item->isHit()) {
-                $hits++;
+                ++$hits;
             }
         }
 

@@ -56,7 +56,6 @@ class CacheDataCollector extends DataCollector
             $this->data['instances']['calls'][$name] = $calls;
         }
 
-
         $this->data['instances']['statistics'] = $this->calculateStatistics();
         $this->data['total']['statistics'] = $this->calculateTotalStatistics();
     }
