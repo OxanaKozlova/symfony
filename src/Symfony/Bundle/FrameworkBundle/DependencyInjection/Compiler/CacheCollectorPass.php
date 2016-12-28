@@ -43,6 +43,7 @@ class CacheCollectorPass implements CompilerPassInterface
             $container->register($id.'.recorder', RecordingAdapter::class)
                 ->setDecoratedService($id)
                 ->addArgument(new Reference($id.'.recorder.inner'))
+                ->addArgument(new Reference('debug.stopwatch'))
                 ->setPublic(false);
 
             // Tell the collector to add the new instance

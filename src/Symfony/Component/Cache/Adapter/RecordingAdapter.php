@@ -13,6 +13,7 @@ namespace Symfony\Component\Cache\Adapter;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 /**
  * An adapter that logs and collects all your cache calls.
@@ -20,7 +21,7 @@ use Psr\Cache\CacheItemPoolInterface;
  * @author Aaron Scherer <aequasi@gmail.com>
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterface
+final class RecordingAdapter implements AdapterInterface
 {
     /**
      * @var array
@@ -33,13 +34,19 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     private $cachePool;
 
     /**
-     * LoggingCachePool constructor.
+     * @var Stopwatch
+     */
+    private $stopwatch;
+
+    /**
      *
      * @param CacheItemPoolInterface $cachePool
+     * @param Stopwatch $stopwatch
      */
-    public function __construct(CacheItemPoolInterface $cachePool)
+    public function __construct(CacheItemPoolInterface $cachePool, Stopwatch $stopwatch)
     {
         $this->cachePool = $cachePool;
+        $this->stopwatch = $stopwatch;
     }
 
     /**
@@ -50,9 +57,16 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
      */
     private function timeCall($name, array $arguments = array())
     {
+        $time = 0;
+        $e = $this->stopwatch->start(get_class($this->cachePool), 'cache');
         $start = microtime(true);
         $result = call_user_func_array(array($this->cachePool, $name), $arguments);
-        $time = microtime(true) - $start;
+        if ($e->isStarted()) {
+            $e->stop();
+            $time = $e->getEndTime() - $e->getStartTime();
+        }
+        $time2 = microtime(true) - $start;
+
 
         $object = (object) compact('name', 'arguments', 'start', 'time', 'result');
 
@@ -67,12 +81,12 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
 
         // Display the result in a good way depending on the data type
         if ($call->isHit) {
-            $call->result = $this->getValueRepresentation($result->get());
+            $call->result = $this->getValueRepresentation($result);
         } else {
             $call->result = null;
         }
 
-        $this->addCall($call);
+        $this->calls[] = $call;
 
         return $result;
     }
@@ -80,7 +94,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     public function hasItem($key)
     {
         $call = $this->timeCall(__FUNCTION__, array($key));
-        $this->addCall($call);
+        $this->calls[] = $call;
 
         return $call->result;
     }
@@ -88,31 +102,29 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     public function deleteItem($key)
     {
         $call = $this->timeCall(__FUNCTION__, array($key));
-        $this->addCall($call);
+        $this->calls[] = $call;
 
         return $call->result;
     }
 
     public function save(CacheItemInterface $item)
     {
-        $key = $item->getKey();
-        $value = $this->getValueRepresentation($item->get());
+        $arg = $this->getValueRepresentation($item);
 
         $call = $this->timeCall(__FUNCTION__, array($item));
-        $call->arguments = array('<CacheItem>', $key, $value);
-        $this->addCall($call);
+        $call->arguments = array($arg);
+        $this->calls[] = $call;
 
         return $call->result;
     }
 
     public function saveDeferred(CacheItemInterface $item)
     {
-        $key = $item->getKey();
-        $value = $this->getValueRepresentation($item->get());
+        $arg = $this->getValueRepresentation($item);
 
         $call = $this->timeCall(__FUNCTION__, array($item));
-        $call->arguments = array('<CacheItem>', $key, $value);
-        $this->addCall($call);
+        $call->arguments = array($arg);
+        $this->calls[] = $call;
 
         return $call->result;
     }
@@ -121,8 +133,20 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     {
         $call = $this->timeCall(__FUNCTION__, array($keys));
         $result = $call->result;
-        $call->result = sprintf('<DATA:%s>', gettype($result));
-        $this->addCall($call);
+        $hits = 0;
+        $items = [];
+        foreach ($result as $item) {
+            $items[] = $item;
+            if ($item->isHit()) {
+                $hits++;
+            }
+        }
+
+        $call->result = $this->getValueRepresentation($items);
+        $call->hits = $hits;
+        $call->count = count($items);
+
+        $this->calls[] = $call;
 
         return $result;
     }
@@ -130,7 +154,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     public function clear()
     {
         $call = $this->timeCall(__FUNCTION__, array());
-        $this->addCall($call);
+        $this->calls[] = $call;
 
         return $call->result;
     }
@@ -138,7 +162,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     public function deleteItems(array $keys)
     {
         $call = $this->timeCall(__FUNCTION__, array($keys));
-        $this->addCall($call);
+        $this->calls[] = $call;
 
         return $call->result;
     }
@@ -146,7 +170,7 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     public function commit()
     {
         $call = $this->timeCall(__FUNCTION__);
-        $this->addCall($call);
+        $this->calls[] = $call;
 
         return $call->result;
     }
@@ -160,16 +184,6 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     }
 
     /**
-     * Record a call.
-     *
-     * @param $call
-     */
-    private function addCall($call)
-    {
-        $this->calls[] = $call;
-    }
-
-    /**
      * Get a string to represent the value.
      *
      * @param mixed $value
@@ -179,12 +193,10 @@ final class RecordingAdapter implements AdapterInterface, RecordingAdapterInterf
     private function getValueRepresentation($value)
     {
         $type = gettype($value);
-        if (in_array($type, array('boolean', 'integer', 'double', 'string', 'NULL'))) {
+        if (in_array($type, array('array', 'boolean', 'integer', 'double', 'string', 'NULL'))) {
             $rep = $value;
-        } elseif ($type === 'array') {
-            $rep = json_encode($value);
         } elseif ($type === 'object') {
-            $rep = get_class($value);
+            $rep = clone $value;
         } else {
             $rep = sprintf('<DATA:%s>', $type);
         }
