@@ -41,7 +41,7 @@ final class RecordingAdapter implements AdapterInterface
     /**
      *
      * @param CacheItemPoolInterface $cachePool
-     * @param Stopwatch $stopwatch
+     * @param Stopwatch              $stopwatch
      */
     public function __construct(CacheItemPoolInterface $cachePool, Stopwatch $stopwatch)
     {
@@ -58,15 +58,12 @@ final class RecordingAdapter implements AdapterInterface
     private function timeCall($name, array $arguments = array())
     {
         $time = 0;
-        $e = $this->stopwatch->start(get_class($this->cachePool), 'cache');
-        $start = microtime(true);
+        $event = $this->stopwatch->start(get_class($this->cachePool), 'cache');
         $result = call_user_func_array(array($this->cachePool, $name), $arguments);
-        if ($e->isStarted()) {
-            $e->stop();
-            $time = $e->getEndTime() - $e->getStartTime();
+        if ($event->isStarted()) {
+            $event->stop();
+            $time = $event->getEndTime() - $event->getStartTime();
         }
-        $time2 = microtime(true) - $start;
-
 
         $object = (object) compact('name', 'arguments', 'start', 'time', 'result');
 
