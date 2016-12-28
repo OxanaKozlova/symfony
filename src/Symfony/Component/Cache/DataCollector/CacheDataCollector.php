@@ -143,9 +143,9 @@ class CacheDataCollector extends DataCollector
                 }
             }
             if ($statistics[$name]['reads']) {
-                $statistics[$name]['ratio'] = round(100 * $statistics[$name]['hits'] / $statistics[$name]['reads'], 2).'%';
+                $statistics[$name]['hits/reads'] = round(100 * $statistics[$name]['hits'] / $statistics[$name]['reads'], 2).'%';
             } else {
-                $statistics[$name]['ratio'] = 'N/A';
+                $statistics[$name]['hits/reads'] = 'N/A';
             }
         }
 
@@ -165,9 +165,9 @@ class CacheDataCollector extends DataCollector
             }
         }
         if ($totals['reads']) {
-            $totals['ratio'] = round(100 * $totals['hits'] / $totals['reads'], 2).'%';
+            $totals['hits/reads'] = round(100 * $totals['hits'] / $totals['reads'], 2).'%';
         } else {
-            $totals['ratio'] = 'N/A';
+            $totals['hits/reads'] = 'N/A';
         }
 
         return $totals;
