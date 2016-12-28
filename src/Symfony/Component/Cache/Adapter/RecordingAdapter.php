@@ -39,7 +39,6 @@ final class RecordingAdapter implements AdapterInterface
     private $stopwatch;
 
     /**
-     *
      * @param CacheItemPoolInterface $cachePool
      * @param Stopwatch              $stopwatch
      */
