@@ -1,14 +1,5 @@
 {% extends 'WebProfilerBundle:Profiler:layout.html.twig' %}
 
-{% block head %}
-    {{ parent() }}
-    <style>
-        .color-red {
-            color:red;
-        }
-    </style>
-{% endblock head %}
-
 {% block toolbar %}
     {% if collector.totals.calls > 0 %}
         {% set icon %}
@@ -59,52 +50,61 @@
     <h2>Cache</h2>
     {% for name, calls in collector.calls %}
         <h3>Statistics for '{{ name }}'</h3>
-        <table>
-            <thead>
-                <tr>
-                    {% for key, value in collector.statistics[name] %}
-                        <th>{{ key|capitalize }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    {% for key, value in collector.statistics[name] %}
+        <div class="metrics">
+            {% for key, value in collector.statistics[name] %}
+                <div class="metric">
+                    <span class="value">
                         {% if key == 'time' %}
                             <td>{{ '%0.2f'|format(1000*value) }} ms</td>
                         {% else %}
                             <td>{{ value }}</td>
                         {% endif %}
-                    {% endfor %}
-                </tr>
-            </tbody>
-        </table>
-
-        <h3>Calls for '{{ name }}'</h3>
+                    </span>
+                    <span class="label">{{ key|capitalize }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <h4>Calls for '{{ name }}'</h4>
 
         {% if not collector.totals.calls %}
             <p>
                 <em>No calls.</em>
             </p>
         {% else %}
-            <ul class="alt">
+            <table>
+                <thead>
+                <tr>
+                    <th style="width: 5rem;">Key</th>
+                    <th>Value</th>
+                </tr>
+                </thead>
+                <tbody>
                 {% for i, call in calls %}
-                    <li class="{{ i is odd ? 'odd' : 'even' }}">
-                        <div>
-                            <strong>Name</strong>: {{ call.name }}<br />
-                            <strong>Arguments</strong>: {{ profiler_dump(call.argument, maxDepth=2) }}<br />
-                            <strong>Results</strong>: {% if call.result == false %}
-                                <span class="color-red">Miss</span>
-                            {% else %}
+                    <tr>
+                        <th style="padding-top:2rem">#{{ i }}</th>
+                        <th style="padding-top:2rem">Pool::{{ call.name }}</th>
+                    </tr>
+                    <tr>
+                        <th>Argument</th>
+                        <td>{{ profiler_dump(call.argument, maxDepth=2) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Results</th>
+                        <td>
+                            {% if call.result != false %}
                                 {{ profiler_dump(call.result, maxDepth=1) }}
-                            {% endif %}<br />
-                        </div>
-                        <small>
-                            <strong>Time</strong>: {{ '%0.2f'|format((call.end - call.start) * 1000) }} ms
-                        </small>
-                    </li>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Time</th>
+                        <td>{{ '%0.2f'|format((call.end - call.start) * 1000) }} ms</td>
+                    </tr>
+
                 {% endfor %}
-            </ul>
+                </tbody>
+
+            </table>
         {% endif %}
     {% endfor %}
 
