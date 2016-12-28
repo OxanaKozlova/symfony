@@ -77,7 +77,7 @@ final class TraceableAdapter implements AdapterInterface
 
         // Display the result in a good way depending on the data type
         if ($call->isHit) {
-            $call->result = $this->getValueRepresentation($result);
+            $call->result = $result;
         } else {
             $call->result = null;
         }
@@ -105,10 +105,8 @@ final class TraceableAdapter implements AdapterInterface
 
     public function save(CacheItemInterface $item)
     {
-        $arg = $this->getValueRepresentation($item);
-
         $call = $this->timeCall(__FUNCTION__, array($item));
-        $call->arguments = array($arg);
+        $call->arguments = array($item);
         $this->calls[] = $call;
 
         return $call->result;
@@ -116,10 +114,8 @@ final class TraceableAdapter implements AdapterInterface
 
     public function saveDeferred(CacheItemInterface $item)
     {
-        $arg = $this->getValueRepresentation($item);
-
         $call = $this->timeCall(__FUNCTION__, array($item));
-        $call->arguments = array($arg);
+        $call->arguments = array($item);
         $this->calls[] = $call;
 
         return $call->result;
@@ -139,7 +135,7 @@ final class TraceableAdapter implements AdapterInterface
                     ++$hits;
                 }
 
-                $call->result = $this->getValueRepresentation($items);
+                $call->result = $items;
                 $call->hits = $hits;
                 $call->count = count($items);
 
@@ -185,26 +181,5 @@ final class TraceableAdapter implements AdapterInterface
     public function getCalls()
     {
         return $this->calls;
-    }
-
-    /**
-     * Get a string to represent the value.
-     *
-     * @param mixed $value
-     *
-     * @return string
-     */
-    private function getValueRepresentation($value)
-    {
-        $type = gettype($value);
-        if (in_array($type, array('array', 'boolean', 'integer', 'double', 'string', 'NULL'))) {
-            $rep = $value;
-        } elseif ($type === 'object') {
-            $rep = clone $value;
-        } else {
-            $rep = sprintf('<DATA:%s>', $type);
-        }
-
-        return $rep;
     }
 }
