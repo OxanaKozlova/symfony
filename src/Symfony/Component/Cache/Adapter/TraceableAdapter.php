@@ -129,42 +129,30 @@ final class TraceableAdapter implements AdapterInterface
     {
         $call = $this->timeCall(__FUNCTION__, array($keys));
         $result = $call->result;
-        $hits = 0;
-        $items = array();
-        if (is_array($result)) {
+
+        $f = function() use ($result, $call) {
+            $hits = 0;
+            $items = array();
             foreach ($result as $item) {
                 $items[] = $item;
                 if ($item->isHit()) {
                     ++$hits;
                 }
+
+                $call->result = $this->getValueRepresentation($items);
+                $call->hits = $hits;
+                $call->count = count($items);
+
+                yield $item;
             }
-        } elseif ($result instanceof \Traversable) {
-            $f = function() use ($result, $call) {
-                $hits = 0;
-                $items = array();
-                foreach ($result as $item) {
-                    $items[] = $item;
-                    if ($item->isHit()) {
-                        ++$hits;
-                    }
+        };
 
-                    $call->result = $this->getValueRepresentation($items);
-                    $call->hits = $hits;
-                    $call->count = count($items);
-
-                    yield $item;
-                }
-            };
-            $result = $f();
-        }
-
-        $call->result = $this->getValueRepresentation($items);
-        $call->hits = $hits;
-        $call->count = count($items);
-
+        $call->result = 'NULL';
+        $call->hits = 0;
+        $call->count = 0;
         $this->calls[] = $call;
 
-        return $result;
+        return $f();
     }
 
     public function clear()
