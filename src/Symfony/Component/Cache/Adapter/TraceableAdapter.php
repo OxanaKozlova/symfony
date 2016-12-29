@@ -177,7 +177,11 @@ class TraceableAdapter implements AdapterInterface
 
     public function getCalls()
     {
-        return $this->calls;
+        try {
+            return $this->calls;
+        } finally {
+            $this->calls = array();
+        }
     }
 
     private function start($name, $argument = null)
