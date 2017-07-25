@@ -12,10 +12,12 @@
 namespace Symfony\Bundle\SecurityBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\SecurityExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Security\Core\Authorization\AccessDecisionManager;
 
 abstract class CompleteConfigurationTest extends TestCase
 {
@@ -57,10 +59,10 @@ abstract class CompleteConfigurationTest extends TestCase
         $this->assertEquals(array(), array_diff($providers, $expectedProviders));
 
         // chain provider
-        $this->assertEquals(array(array(
+        $this->assertEquals(array(new IteratorArgument(array(
             new Reference('security.user.provider.concrete.service'),
             new Reference('security.user.provider.concrete.basic'),
-        )), $container->getDefinition('security.user.provider.concrete.chain')->getArguments());
+        ))), $container->getDefinition('security.user.provider.concrete.chain')->getArguments());
     }
 
     public function testFirewalls()
@@ -354,6 +356,29 @@ abstract class CompleteConfigurationTest extends TestCase
     public function testUserPasswordEncoderCommandIsRegistered()
     {
         $this->assertTrue($this->getContainer('remember_me_options')->has('security.console.user_password_encoder_command'));
+    }
+
+    public function testDefaultAccessDecisionManagerStrategyIsAffirmative()
+    {
+        $container = $this->getContainer('access_decision_manager_default_strategy');
+
+        $this->assertSame(AccessDecisionManager::STRATEGY_AFFIRMATIVE, $container->getDefinition('security.access.decision_manager')->getArgument(1), 'Default vote strategy is affirmative');
+    }
+
+    public function testCustomAccessDecisionManagerService()
+    {
+        $container = $this->getContainer('access_decision_manager_service');
+
+        $this->assertSame('app.access_decision_manager', (string) $container->getAlias('security.access.decision_manager'), 'The custom access decision manager service is aliased');
+    }
+
+    /**
+     * @expectedException \Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
+     * @expectedExceptionMessage "strategy" and "service" cannot be used together.
+     */
+    public function testAccessDecisionManagerServiceAndStrategyCannotBeUsedAtTheSameTime()
+    {
+        $container = $this->getContainer('access_decision_manager_service_and_strategy');
     }
 
     protected function getContainer($file)

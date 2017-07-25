@@ -392,6 +392,8 @@ class FrameworkExtension extends Extension
     private function registerEsiConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
     {
         if (!$this->isConfigEnabled($container, $config)) {
+            $container->removeDefinition('fragment.renderer.esi');
+
             return;
         }
 
@@ -408,6 +410,8 @@ class FrameworkExtension extends Extension
     private function registerSsiConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
     {
         if (!$this->isConfigEnabled($container, $config)) {
+            $container->removeDefinition('fragment.renderer.ssi');
+
             return;
         }
 
@@ -424,6 +428,8 @@ class FrameworkExtension extends Extension
     private function registerFragmentsConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
     {
         if (!$this->isConfigEnabled($container, $config)) {
+            $container->removeDefinition('fragment.renderer.hinclude');
+
             return;
         }
 
@@ -646,7 +652,7 @@ class FrameworkExtension extends Extension
         $loader->load('debug_prod.xml');
 
         if (class_exists(Stopwatch::class)) {
-            $container->register('debug.stopwatch', Stopwatch::class);
+            $container->register('debug.stopwatch', Stopwatch::class)->addArgument(true);
             $container->setAlias(Stopwatch::class, 'debug.stopwatch');
         }
 

@@ -61,6 +61,8 @@ Console
  * The `console.exception` event and the related `ConsoleExceptionEvent` class have
    been removed in favor of the `console.error` event and the `ConsoleErrorEvent` class.
 
+ * The `SymfonyQuestionHelper::ask` default validation has been removed in favor of `Question::setValidator`.
+
 Debug
 -----
 
@@ -69,6 +71,8 @@ Debug
 
  * `FlattenException::getTrace()` now returns additional type descriptions
    `integer` and `float`.
+
+ * Support for stacked errors in the `ErrorHandler` has been removed
 
 DependencyInjection
 -------------------
@@ -348,6 +352,24 @@ FrameworkBundle
  * The `--no-prefix` option of the `translation:update` command has
    been removed.
 
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddCacheClearerPass` class has been removed. 
+   Use the `Symfony\Component\HttpKernel\DependencyInjection\AddCacheClearerPass` class instead.
+
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddCacheWarmerPass` class has been removed. 
+   Use the `Symfony\Component\HttpKernel\DependencyInjection\AddCacheWarmerPass` class instead.
+
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\TranslationDumperPass`
+   class has been removed. Use the
+   `Symfony\Component\Translation\DependencyInjection\TranslationDumperPass` class instead.
+
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\TranslationExtractorPass`
+   class has been removed. Use the
+   `Symfony\Component\Translation\DependencyInjection\TranslationExtractorPass` class instead.
+
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\TranslatorPass`
+   class has been removed. Use the
+   `Symfony\Component\Translation\DependencyInjection\TranslatorPass` class instead.
+
 HttpFoundation
 --------------
 
@@ -420,7 +442,7 @@ HttpKernel
 Ldap
 ----
 
- * The `RenameEntryInterface` has been deprecated, and merged with `EntryManagerInterface`
+ * The `RenameEntryInterface` has been removed, and merged with `EntryManagerInterface`
 
 Process
 -------
@@ -464,7 +486,7 @@ SecurityBundle
 
  * The `UserPasswordEncoderCommand` class does not allow `null` as the first argument anymore.
 
- * `UserPasswordEncoderCommand` does not implement `ContainerAwareInterface` anymore.
+ * `UserPasswordEncoderCommand` does not extend `ContainerAwareCommand` nor implement `ContainerAwareInterface` anymore.
 
 Serializer
 ----------
@@ -491,8 +513,15 @@ TwigBundle
 * The `ContainerAwareRuntimeLoader` class has been removed. Use the
   Twig `Twig_ContainerRuntimeLoader` class instead.
 
+ * Removed `DebugCommand` in favor of `Symfony\Bridge\Twig\Command\DebugCommand`.
+
+ * Removed `ContainerAwareInterface` implementation in `Symfony\Bundle\TwigBundle\Command\LintCommand`.
+
 TwigBridge
 ----------
+
+ * removed the `Symfony\Bridge\Twig\Form\TwigRenderer` class, use the `FormRenderer`
+   class from the Form component instead
 
  * Removed the possibility to inject the Form `TwigRenderer` into the `FormExtension`.
    Upgrade Twig to `^1.30`, inject the `Twig_Environment` into the `TwigRendererEngine` and load
@@ -527,6 +556,12 @@ TwigBridge
 
  * The `TwigRendererEngine::setEnvironment()` method has been removed.
    Pass the Twig Environment as second argument of the constructor instead.
+   
+ * Removed `Symfony\Bridge\Twig\Command\DebugCommand::set/getTwigEnvironment` and the ability 
+   to pass a command name as first argument.
+ 
+ * Removed `Symfony\Bridge\Twig\Command\LintCommand::set/getTwigEnvironment` and the ability
+   to pass a command name as first argument.
 
 Validator
 ---------
@@ -563,9 +598,38 @@ Validator
    }
    ```
 
- * The default value of the strict option of the `Choice` Constraint has been
-   changed to `true` as of 4.0. If you need the previous behaviour ensure to
-   set the option to `false`.
+VarDumper
+---------
+
+ * The `VarDumperTestTrait::assertDumpEquals()` method expects a 3rd `$context = null`
+   argument and moves `$message = ''` argument at 4th position.
+
+   Before:
+
+   ```php
+   VarDumperTestTrait::assertDumpEquals($dump, $data, $message = '');
+   ```
+
+   After:
+
+   ```php
+   VarDumperTestTrait::assertDumpEquals($dump, $data, $filter = 0, $message = '');
+   ```
+
+ * The `VarDumperTestTrait::assertDumpMatchesFormat()` method expects a 3rd `$context = null`
+   argument and moves `$message = ''` argument at 4th position.
+
+   Before:
+
+   ```php
+   VarDumperTestTrait::assertDumpMatchesFormat($dump, $data, $message = '');
+   ```
+
+   After:
+
+   ```php
+   VarDumperTestTrait::assertDumpMatchesFormat($dump, $data, $filter = 0, $message = '');
+   ```
 
 Workflow
 --------
@@ -574,6 +638,8 @@ Workflow
 
 Yaml
 ----
+
+ * Support for the `!str` tag was removed, use the `!!str` tag instead.
 
  * Starting an unquoted string with a question mark followed by a space
    throws a `ParseException`.

@@ -6,6 +6,11 @@ DependencyInjection
 
  * Top-level anonymous services in XML are deprecated and will throw an exception in Symfony 4.0.
 
+Debug
+-----
+
+ * Support for stacked errors in the `ErrorHandler` is deprecated and will be removed in Symfony 4.0.
+
 Finder
 ------
 
@@ -38,6 +43,26 @@ FrameworkBundle
    will be removed in 4.0. Use the `--prefix` option with an empty string as value
    instead (e.g. `--prefix=""`)
 
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddCacheClearerPass`
+   class has been deprecated and will be removed in 4.0. Use the
+   `Symfony\Component\HttpKernel\DependencyInjection\AddCacheClearerPass` class instead.
+
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddCacheWarmerPass`
+   class has been deprecated and will be removed in 4.0. Use the
+   `Symfony\Component\HttpKernel\DependencyInjection\AddCacheWarmerPass` class instead.
+
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\TranslationDumperPass`
+   class has been deprecated and will be removed in 4.0. Use the
+   `Symfony\Component\Translation\DependencyInjection\TranslationDumperPass` class instead.
+
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\TranslationExtractorPass`
+   class has been deprecated and will be removed in 4.0. Use the
+   `Symfony\Component\Translation\DependencyInjection\TranslationExtractorPass` class instead.
+
+ * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\TranslatorPass`
+   class has been deprecated and will be removed in 4.0. Use the
+   `Symfony\Component\Translation\DependencyInjection\TranslatorPass` class instead.
+
 Process
 -------
 
@@ -52,6 +77,27 @@ SecurityBundle
 
  * `FirewallContext::getListeners()` now returns `\Traversable|array`
 
+TwigBridge
+----------
+
+ * deprecated the `Symfony\Bridge\Twig\Form\TwigRenderer` class, use the `FormRenderer`
+   class from the Form component instead
+
+ * deprecated `Symfony\Bridge\Twig\Command\DebugCommand::set/getTwigEnvironment` and the ability 
+   to pass a command name as first argument
+
+ * deprecated `Symfony\Bridge\Twig\Command\LintCommand::set/getTwigEnvironment` and the ability
+   to pass a command name as first argument
+
+TwigBundle
+----------
+
+ * deprecated the `Symfony\Bundle\TwigBundle\Command\DebugCommand` class, use the `DebugCommand`
+   class from the Twig bridge instead
+
+ * deprecated relying on the `ContainerAwareInterface` implementation for 
+   `Symfony\Bundle\TwigBundle\Command\LintCommand`
+
 Validator
 ---------
 
@@ -60,6 +106,8 @@ Validator
 
 Yaml
 ----
+
+ * Support for the `!str` tag is deprecated, use the `!!str` tag instead.
 
  * Using the non-specific tag `!` is deprecated and will have a different
    behavior in 4.0. Use a plain integer or `!!float` instead.
