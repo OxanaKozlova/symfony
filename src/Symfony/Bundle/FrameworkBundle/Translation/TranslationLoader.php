@@ -20,7 +20,7 @@ use Symfony\Component\Translation\Loader\LoaderInterface;
  *
  * @author Michel Salib <michelsalib@hotmail.com>
  */
-class TranslationLoader
+class TranslationLoader implements TranslationLoaderInterface
 {
     /**
      * Loaders used for import.
