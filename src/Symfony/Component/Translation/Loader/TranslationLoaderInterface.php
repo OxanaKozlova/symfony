@@ -13,7 +13,6 @@ namespace Symfony\Component\Translation\Loader;
 
 use Symfony\Component\Translation\MessageCatalogue;
 
-
 /**
  * TranslationLoader loads translation messages from translation files.
  *
@@ -24,7 +23,7 @@ interface TranslationLoaderInterface
     /**
      * Loads translation messages from a directory to the catalogue.
      *
-     * @param string $directory the directory to look into
+     * @param string           $directory the directory to look into
      * @param MessageCatalogue $catalogue the catalogue
      */
     public function loadMessages($directory, MessageCatalogue $catalogue);
