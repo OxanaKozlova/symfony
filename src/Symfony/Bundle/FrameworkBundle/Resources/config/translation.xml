@@ -117,7 +117,7 @@
             <tag name="translation.dumper" alias="res" />
         </service>
 
-        <service id="translation.extractor.php" class="Symfony\Bundle\FrameworkBundle\Translation\PhpExtractor" public="true">
+        <service id="translation.extractor.php" class="Symfony\Component\Translation\Extractor\PhpExtractor" public="true">
             <tag name="translation.extractor" alias="php" />
         </service>
 

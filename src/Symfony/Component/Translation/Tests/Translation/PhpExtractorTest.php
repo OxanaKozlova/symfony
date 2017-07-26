@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bundle\FrameworkBundle\Tests\Translation;
+namespace Symfony\Component\Translation\Tests\Translation;
 
-use Symfony\Bundle\FrameworkBundle\Tests\TestCase;
-use Symfony\Bundle\FrameworkBundle\Translation\PhpExtractor;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Translation\Extractor\PhpExtractor;
 use Symfony\Component\Translation\MessageCatalogue;
 
 class PhpExtractorTest extends TestCase
