@@ -16,15 +16,15 @@ use Symfony\Component\Translation\MessageCatalogue;
 /**
  * TranslationReader reads translation messages from translation files.
  *
- * @author Michel Salib <michelsalib@hotmail.com>
+ * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
 interface TranslationReaderInterface
 {
     /**
      * Reads translation messages from a directory to the catalogue.
      *
-     * @param string           $directory the directory to look into
-     * @param MessageCatalogue $catalogue the catalogue
+     * @param string           $directory
+     * @param MessageCatalogue $catalogue
      */
     public function read($directory, MessageCatalogue $catalogue);
 }

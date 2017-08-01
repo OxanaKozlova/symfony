@@ -12,7 +12,6 @@
 namespace Symfony\Bundle\FrameworkBundle\Translation;
 
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Translation\Reader\TranslationReaderInterface;
 use Symfony\Component\Translation\MessageCatalogue;
 use Symfony\Component\Translation\Loader\LoaderInterface;
 
@@ -21,7 +20,7 @@ use Symfony\Component\Translation\Loader\LoaderInterface;
  *
  * @author Michel Salib <michelsalib@hotmail.com>
  */
-class TranslationLoader implements TranslationReaderInterface
+class TranslationLoader
 {
     /**
      * Loaders used for import.
@@ -42,12 +41,12 @@ class TranslationLoader implements TranslationReaderInterface
     }
 
     /**
-     * Reads translation messages from a directory to the catalogue.
+     * Loads translation messages from a directory to the catalogue.
      *
      * @param string           $directory the directory to look into
      * @param MessageCatalogue $catalogue the catalogue
      */
-    public function read($directory, MessageCatalogue $catalogue)
+    public function loadMessages($directory, MessageCatalogue $catalogue)
     {
         if (!is_dir($directory)) {
             return;
@@ -64,18 +63,4 @@ class TranslationLoader implements TranslationReaderInterface
             }
         }
     }
-
-    /**
-     * Loads translation messages from a directory to the catalogue.
-     *
-     * @param string           $directory the directory to look into
-     * @param MessageCatalogue $catalogue the catalogue
-     *
-     * @deprecated since 3.4 will be removed in 4.0. Use read instead.
-     */
-    public function loadMessages($directory, MessageCatalogue $catalogue)
-    {
-        $this->read($directory, $catalogue);
     }
-
-}
