@@ -14,17 +14,17 @@ namespace Symfony\Component\Translation\Reader;
 use Symfony\Component\Translation\MessageCatalogue;
 
 /**
- * TranslationLoader loads translation messages from translation files.
+ * TranslationReader reads translation messages from translation files.
  *
  * @author Michel Salib <michelsalib@hotmail.com>
  */
 interface TranslationReaderInterface
 {
     /**
-     * Loads translation messages from a directory to the catalogue.
+     * Reads translation messages from a directory to the catalogue.
      *
      * @param string           $directory the directory to look into
      * @param MessageCatalogue $catalogue the catalogue
      */
-    public function loadMessages($directory, MessageCatalogue $catalogue);
+    public function read($directory, MessageCatalogue $catalogue);
 }
