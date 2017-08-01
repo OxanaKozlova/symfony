@@ -12,7 +12,7 @@
 namespace Symfony\Bundle\FrameworkBundle\Translation;
 
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Translation\Loader\TranslationLoaderInterface;
+use Symfony\Component\Translation\Reader\TranslationReaderInterface;
 use Symfony\Component\Translation\MessageCatalogue;
 use Symfony\Component\Translation\Loader\LoaderInterface;
 
@@ -21,7 +21,7 @@ use Symfony\Component\Translation\Loader\LoaderInterface;
  *
  * @author Michel Salib <michelsalib@hotmail.com>
  */
-class TranslationLoader implements TranslationLoaderInterface
+class TranslationLoader implements TranslationReaderInterface
 {
     /**
      * Loaders used for import.

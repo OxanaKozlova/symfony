@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Translation\Loader;
+namespace Symfony\Component\Translation\Reader;
 
 use Symfony\Component\Translation\MessageCatalogue;
 
@@ -18,7 +18,7 @@ use Symfony\Component\Translation\MessageCatalogue;
  *
  * @author Michel Salib <michelsalib@hotmail.com>
  */
-interface TranslationLoaderInterface
+interface TranslationReaderInterface
 {
     /**
      * Loads translation messages from a directory to the catalogue.
