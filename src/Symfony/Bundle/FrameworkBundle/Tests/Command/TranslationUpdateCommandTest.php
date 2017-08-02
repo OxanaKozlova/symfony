@@ -116,7 +116,7 @@ class TranslationUpdateCommandTest extends TestCase
         $loader = $this->getMockBuilder('Symfony\Component\Translation\Reader\TranslationReader')->getMock();
         $loader
             ->expects($this->any())
-            ->method('loadMessages')
+            ->method('read')
             ->will(
                 $this->returnCallback(function ($path, $catalogue) use ($loadedMessages) {
                     $catalogue->add($loadedMessages);
@@ -153,7 +153,7 @@ class TranslationUpdateCommandTest extends TestCase
             ->method('get')
             ->will($this->returnValueMap(array(
                 array('translation.extractor', 1, $extractor),
-                array('translation.loader', 1, $loader),
+                array('translation.reader', 1, $loader),
                 array('translation.writer', 1, $writer),
                 array('translator', 1, $translator),
                 array('kernel', 1, $kernel),

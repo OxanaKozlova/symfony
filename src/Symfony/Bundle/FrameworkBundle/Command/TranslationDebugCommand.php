@@ -107,8 +107,8 @@ EOF
 
         $locale = $input->getArgument('locale');
         $domain = $input->getOption('domain');
-        /** @var TranslationReaderInterface $loader */
-        $loader = $this->getContainer()->get('translation.loader');
+        /** @var TranslationReaderInterface $reader */
+        $reader = $this->getContainer()->get('translation.reader');
         /** @var Kernel $kernel */
         $kernel = $this->getContainer()->get('kernel');
 
@@ -142,7 +142,7 @@ EOF
         $extractedCatalogue = $this->extractMessages($locale, $transPaths);
 
         // Load defined messages
-        $currentCatalogue = $this->loadCurrentMessages($locale, $transPaths, $loader);
+        $currentCatalogue = $this->loadCurrentMessages($locale, $transPaths, $reader);
 
         // Merge defined and extracted messages to get all message ids
         $mergeOperation = new MergeOperation($extractedCatalogue, $currentCatalogue);
@@ -165,7 +165,7 @@ EOF
         }
 
         // Load the fallback catalogues
-        $fallbackCatalogues = $this->loadFallbackCatalogues($locale, $transPaths, $loader);
+        $fallbackCatalogues = $this->loadFallbackCatalogues($locale, $transPaths, $reader);
 
         // Display header line
         $headers = array('State', 'Domain', 'Id', sprintf('Message Preview (%s)', $locale));

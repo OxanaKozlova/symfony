@@ -22,7 +22,7 @@ class TranslatorPass implements CompilerPassInterface
     private $loaderServiceId;
     private $loaderTag;
 
-    public function __construct($translatorServiceId = 'translator.default', $loaderServiceId = 'translation.loader', $loaderTag = 'translation.loader')
+    public function __construct($translatorServiceId = 'translator.default', $loaderServiceId = 'translation.reader', $loaderTag = 'translation.loader')
     {
         $this->translatorServiceId = $translatorServiceId;
         $this->loaderServiceId = $loaderServiceId;

@@ -152,11 +152,11 @@ EOF
         // load any existing messages from the translation files
         $currentCatalogue = new MessageCatalogue($input->getArgument('locale'));
         $errorIo->comment('Loading translation files...');
-        $loader = $this->getContainer()->get('translation.loader');
+        $reader = $this->getContainer()->get('translation.reader');
         foreach ($transPaths as $path) {
             $path .= 'translations';
             if (is_dir($path)) {
-                $loader->loadMessages($path, $currentCatalogue);
+                $reader->read($path, $currentCatalogue);
             }
         }
 
