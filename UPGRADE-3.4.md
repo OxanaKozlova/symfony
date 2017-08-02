@@ -42,7 +42,7 @@ FrameworkBundle
  * The `--no-prefix` option of the `translation:update` command is deprecated and
    will be removed in 4.0. Use the `--prefix` option with an empty string as value
    instead (e.g. `--prefix=""`)
-   
+
  * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddCacheClearerPass`
    class has been deprecated and will be removed in 4.0. Use the
    `Symfony\Component\HttpKernel\DependencyInjection\AddCacheClearerPass` class instead.

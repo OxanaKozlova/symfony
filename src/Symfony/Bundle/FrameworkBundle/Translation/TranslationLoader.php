@@ -17,11 +17,17 @@ use Symfony\Component\Translation\MessageCatalogue;
 @trigger_error(sprintf('The class "%s" has been deprecated. Use "%s" instead. ', self::class, TranslationReader::class), E_USER_DEPRECATED);
 
 /**
- * @deprecated Since 3.4. Use Symfony\Component\Translation\Reader\TranslationReader instead.
+ * @deprecated Since 3.4. Use Symfony\Component\Translation\Reader\TranslationReader instead
  */
 class TranslationLoader extends TranslationReader
 {
-    public function loadTranslations($directory, MessageCatalogue $catalogue)
+    /**
+     * Loads translation messages from a directory to the catalogue.
+     *
+     * @param string           $directory the directory to look into
+     * @param MessageCatalogue $catalogue the catalogue
+     */
+    public function loadMessages($directory, MessageCatalogue $catalogue)
     {
         $this->read($directory, $catalogue);
     }
