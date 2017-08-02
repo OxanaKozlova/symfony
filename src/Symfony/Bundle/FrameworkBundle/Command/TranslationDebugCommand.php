@@ -11,7 +11,6 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Command;
 
-use Symfony\Component\Translation\Loader\TranslationReader;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -20,6 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Translation\Catalogue\MergeOperation;
 use Symfony\Component\Translation\MessageCatalogue;
+use Symfony\Component\Translation\Reader\TranslationReaderInterface;
 use Symfony\Component\Translation\Translator;
 use Symfony\Component\Translation\DataCollectorTranslator;
 use Symfony\Component\Translation\LoggingTranslator;
@@ -107,7 +107,7 @@ EOF
 
         $locale = $input->getArgument('locale');
         $domain = $input->getOption('domain');
-        /** @var TranslationReader $loader */
+        /** @var TranslationReaderInterface $loader */
         $loader = $this->getContainer()->get('translation.loader');
         /** @var Kernel $kernel */
         $kernel = $this->getContainer()->get('kernel');
@@ -279,19 +279,19 @@ EOF
     }
 
     /**
-     * @param string            $locale
-     * @param array             $transPaths
-     * @param TranslationReader $loader
+     * @param string                     $locale
+     * @param array                      $transPaths
+     * @param TranslationReaderInterface $reader
      *
      * @return MessageCatalogue
      */
-    private function loadCurrentMessages($locale, $transPaths, TranslationReader $loader)
+    private function loadCurrentMessages($locale, $transPaths, TranslationReaderInterface $reader)
     {
         $currentCatalogue = new MessageCatalogue($locale);
         foreach ($transPaths as $path) {
             $path = $path.'translations';
             if (is_dir($path)) {
-                $loader->loadMessages($path, $currentCatalogue);
+                $reader->read($path, $currentCatalogue);
             }
         }
 
@@ -299,13 +299,13 @@ EOF
     }
 
     /**
-     * @param string            $locale
-     * @param array             $transPaths
-     * @param TranslationReader $loader
+     * @param string                     $locale
+     * @param array                      $transPaths
+     * @param TranslationReaderInterface $reader
      *
      * @return MessageCatalogue[]
      */
-    private function loadFallbackCatalogues($locale, $transPaths, TranslationReader $loader)
+    private function loadFallbackCatalogues($locale, $transPaths, TranslationReaderInterface $reader)
     {
         $fallbackCatalogues = array();
         $translator = $this->getContainer()->get('translator');
@@ -319,7 +319,7 @@ EOF
                 foreach ($transPaths as $path) {
                     $path = $path.'translations';
                     if (is_dir($path)) {
-                        $loader->loadMessages($path, $fallbackCatalogue);
+                        $reader->read($path, $fallbackCatalogue);
                     }
                 }
                 $fallbackCatalogues[] = $fallbackCatalogue;

@@ -43,9 +43,6 @@ FrameworkBundle
    will be removed in 4.0. Use the `--prefix` option with an empty string as value
    instead (e.g. `--prefix=""`)
    
- * The class `Symfony\Bundle\FrameworkBundle\Translation\TranslationLoader` was 
-   moved to the Translation component (`Symfony\Component\Translation\Loader\TranslationLoader`)
-
  * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddCacheClearerPass`
    class has been deprecated and will be removed in 4.0. Use the
    `Symfony\Component\HttpKernel\DependencyInjection\AddCacheClearerPass` class instead.
@@ -69,6 +66,8 @@ FrameworkBundle
  * The `Symfony\Bundle\FrameworkBundle\Translation\TranslationLoaders`
    class has been deprecated and will be removed in 4.0. Use the
    `Symfony\Component\Translation\Reader\TranslationReader` class instead.
+   
+ * Deprecated `translation.loader` service, use `translation.reader` instead
 
 Process
 -------

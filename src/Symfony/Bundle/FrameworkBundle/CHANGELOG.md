@@ -24,6 +24,7 @@ CHANGELOG
    implementations
  * Deprecated `Symfony\Bundle\FrameworkBundle\Translation\TranslationLoader`, use 
    `Symfony\Component\Translation\Reader\TranslationReader` instead
+ * Deprecated `translation.loader` service, use `translation.reader` instead
 
 3.3.0
 -----

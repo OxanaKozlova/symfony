@@ -17,7 +17,7 @@ use Symfony\Component\Translation\MessageCatalogue;
 @trigger_error(sprintf('The class "%s" has been deprecated. Use "%s" instead. ', self::class, TranslationReader::class), E_USER_DEPRECATED);
 
 /**
- * @deprecated Since 3.4. Use Symfony\Component\Translation\Loader\TranslationReader instead.
+ * @deprecated Since 3.4. Use Symfony\Component\Translation\Reader\TranslationReader instead.
  */
 class TranslationLoader extends TranslationReader
 {

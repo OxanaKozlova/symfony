@@ -14,7 +14,6 @@ namespace Symfony\Component\Translation\Reader;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Translation\Loader\LoaderInterface;
 use Symfony\Component\Translation\MessageCatalogue;
-use Symfony\Component\Translation\Reader\TranslationReaderInterface;
 
 /**
  * TranslationReader reads translation messages from translation files.

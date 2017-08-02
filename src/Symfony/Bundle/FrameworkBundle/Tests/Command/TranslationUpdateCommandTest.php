@@ -113,7 +113,7 @@ class TranslationUpdateCommandTest extends TestCase
                 })
             );
 
-        $loader = $this->getMockBuilder('Symfony\Component\Translation\Loader\TranslationReader')->getMock();
+        $loader = $this->getMockBuilder('Symfony\Component\Translation\Reader\TranslationReader')->getMock();
         $loader
             ->expects($this->any())
             ->method('loadMessages')
