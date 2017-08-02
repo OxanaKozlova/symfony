@@ -7,7 +7,7 @@ CHANGELOG
  * Added `TranslationDumperPass`
  * Added `TranslationExtractorPass`
  * Added `TranslatorPass`
- * Added class `Symfony\Component\Translation\Loader\TranslationLoader` from FrameworkBundle
+ * Added `TranslationReader`
  * Added `TranslationReaderInterface`
 
 

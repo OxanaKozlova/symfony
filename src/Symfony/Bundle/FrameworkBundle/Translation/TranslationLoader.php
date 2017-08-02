@@ -11,11 +11,18 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Translation;
 
-@trigger_error(sprintf('The class "%s" has been deprecated. Use "%s" instead. ', self::class, \Symfony\Component\Translation\Loader\TranslationLoader::class), E_USER_DEPRECATED);
+use Symfony\Component\Translation\Reader\TranslationReader;
+use Symfony\Component\Translation\MessageCatalogue;
+
+@trigger_error(sprintf('The class "%s" has been deprecated. Use "%s" instead. ', self::class, TranslationReader::class), E_USER_DEPRECATED);
 
 /**
- * @deprecated Class moved to Symfony\Component\Translation\Loader\TranslationLoader
+ * @deprecated Since 3.4. Use Symfony\Component\Translation\Loader\TranslationReader instead.
  */
-class TranslationLoader extends \Symfony\Component\Translation\Loader\TranslationLoader
+class TranslationLoader extends TranslationReader
 {
+    public function loadTranslations($directory, MessageCatalogue $catalogue)
+    {
+        $this->read($directory, $catalogue);
+    }
 }

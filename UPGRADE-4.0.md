@@ -369,6 +369,10 @@ FrameworkBundle
  * The `Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\TranslatorPass`
    class has been removed. Use the
    `Symfony\Component\Translation\DependencyInjection\TranslatorPass` class instead.
+ 
+ * The `Symfony\Bundle\FrameworkBundle\Translation\TranslationLoaders`
+   class has been deprecated and will be removed in 4.0. Use the
+   `Symfony\Component\Translation\Reader\TranslationReader` class instead.
 
 HttpFoundation
 --------------

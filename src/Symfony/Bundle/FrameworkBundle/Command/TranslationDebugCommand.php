@@ -11,7 +11,7 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Command;
 
-use Symfony\Component\Translation\Loader\TranslationLoader;
+use Symfony\Component\Translation\Loader\TranslationReader;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -107,7 +107,7 @@ EOF
 
         $locale = $input->getArgument('locale');
         $domain = $input->getOption('domain');
-        /** @var TranslationLoader $loader */
+        /** @var TranslationReader $loader */
         $loader = $this->getContainer()->get('translation.loader');
         /** @var Kernel $kernel */
         $kernel = $this->getContainer()->get('kernel');
@@ -281,11 +281,11 @@ EOF
     /**
      * @param string            $locale
      * @param array             $transPaths
-     * @param TranslationLoader $loader
+     * @param TranslationReader $loader
      *
      * @return MessageCatalogue
      */
-    private function loadCurrentMessages($locale, $transPaths, TranslationLoader $loader)
+    private function loadCurrentMessages($locale, $transPaths, TranslationReader $loader)
     {
         $currentCatalogue = new MessageCatalogue($locale);
         foreach ($transPaths as $path) {
@@ -301,11 +301,11 @@ EOF
     /**
      * @param string            $locale
      * @param array             $transPaths
-     * @param TranslationLoader $loader
+     * @param TranslationReader $loader
      *
      * @return MessageCatalogue[]
      */
-    private function loadFallbackCatalogues($locale, $transPaths, TranslationLoader $loader)
+    private function loadFallbackCatalogues($locale, $transPaths, TranslationReader $loader)
     {
         $fallbackCatalogues = array();
         $translator = $this->getContainer()->get('translator');
