@@ -64,7 +64,7 @@ class MergeOperationTest extends AbstractOperationTest
 
         $mergedCatalogue = new MessageCatalogue('en', array('messages' => array('a' => 'old_a', 'b' => 'old_b', 'c' => 'new_c')));
         $mergedCatalogue->setMetadata('a', 'foo', 'messages');
-        $mergedCatalogue->setMetadata('b', 'bar', 'messages');
+        $mergedCatalogue->setMetadata('b', 'baz', 'messages');
         $mergedCatalogue->setMetadata('c', 'qux', 'messages');
 
         $this->assertEquals(
