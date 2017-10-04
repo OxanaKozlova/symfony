@@ -147,10 +147,14 @@
 {% endblock choice_label %}
 
 {% block checkbox_label -%}
+    {%- set label_attr = label_attr|merge({for: id}) -%}
+
     {{- block('checkbox_radio_label') -}}
 {%- endblock checkbox_label %}
 
 {% block radio_label -%}
+    {%- set label_attr = label_attr|merge({for: id}) -%}
+
     {{- block('checkbox_radio_label') -}}
 {%- endblock radio_label %}
 
