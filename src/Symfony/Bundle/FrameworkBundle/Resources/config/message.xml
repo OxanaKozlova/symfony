@@ -19,6 +19,7 @@
             <argument type="service" id="logger" />
 
             <tag name="message_middleware" priority="10" />
+            <tag name="monolog.logger" channel="message" />
         </service>
 
         <!-- Handlers -->
