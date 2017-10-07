@@ -51,5 +51,10 @@
             <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController"/>
             <tag name="data_collector" template="@WebProfiler/Collector/router.html.twig" id="router" priority="285" />
         </service>
+
+        <service id="data_collector.messages" class="Symfony\Bundle\FrameworkBundle\DataCollector\MessagesDataCollector">
+            <tag name="data_collector" template="@WebProfiler/Collector/messages.html.twig" id="messages" priority="100" />
+            <tag name="message_middleware" />
+        </service>
     </services>
 </container>
