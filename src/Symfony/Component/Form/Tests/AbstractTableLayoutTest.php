@@ -27,13 +27,17 @@ abstract class AbstractTableLayoutTest extends AbstractLayoutTest
 '/tr
     [
         ./td
-            [./label[@for="name"]]
-        /following-sibling::td
             [
-                ./ul
-                    [./li[.="[trans]Error![/trans]"]]
-                    [count(./li)=1]
-                /following-sibling::input[@id="name"]
+                ./label[@for="name"]
+                [
+                    ./ul
+                        [./li[.="[trans]Error![/trans]"]]
+                        [count(./li)=1]
+                ]
+            ]
+        /following-sibling::td
+            [            
+                ./input[@id="name"]
             ]
     ]
 '
@@ -327,7 +331,7 @@ abstract class AbstractTableLayoutTest extends AbstractLayoutTest
         $this->assertWidgetMatchesXpath($form->createView(), array(),
 '/table
     [
-        ./tr/td/ul[./li[.="[trans]Error![/trans]"]]
+        ./tr/td/label/ul[./li[.="[trans]Error![/trans]"]]
         /following-sibling::table[@id="name_child"]
     ]
     [count(.//li[.="[trans]Error![/trans]"])=1]
