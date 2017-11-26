@@ -504,7 +504,7 @@ abstract class AbstractTableLayoutTest extends AbstractLayoutTest
             ->getForm()
             ->createView();
 
-        $this->renderWidget($view['field1']);s
+        $this->renderWidget($view['field1']);
 
         // Rest should only contain field2, but isn't rendered
         $html = $this->renderEnd($view, array('render_rest' => false));
