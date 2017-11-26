@@ -331,8 +331,8 @@ abstract class AbstractTableLayoutTest extends AbstractLayoutTest
         $this->assertWidgetMatchesXpath($form->createView(), array(),
 '/table
     [
-        ./tr/td/label/ul[./li[.="[trans]Error![/trans]"]]
-        /following-sibling::table[@id="name_child"]
+        ./tr/td[./label/ul[./li[.="[trans]Error![/trans]"]]]
+        /following-sibling::td[./table[@id="name_child"]]
     ]
     [count(.//li[.="[trans]Error![/trans]"])=1]
 '
