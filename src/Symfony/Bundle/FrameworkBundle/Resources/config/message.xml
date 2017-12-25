@@ -14,14 +14,6 @@
 
         <service id="Symfony\Component\Message\MessageBusInterface" alias="message_bus" />
 
-        <!-- Logging -->
-        <service id="message.middleware.debug.logging" class="Symfony\Component\Message\Debug\LoggingMiddleware">
-            <argument type="service" id="logger" />
-
-            <tag name="message_middleware" priority="10" />
-            <tag name="monolog.logger" channel="message" />
-        </service>
-
         <!-- Handlers -->
         <service id="message.handler_resolver" class="Symfony\Component\Message\HandlerLocator">
             <argument type="collection" /> <!-- Message to handler mapping -->
@@ -50,5 +42,18 @@
 
         <service id="message.transport.default_encoder" alias="message.transport.serialize_message_with_type_in_headers" public="true" />
         <service id="message.transport.default_decoder" alias="message.transport.serialize_message_with_type_in_headers" public="true" />
+
+        <!-- Logging & Debug -->
+        <service id="message.middleware.debug.logging" class="Symfony\Component\Message\Debug\LoggingMiddleware">
+            <argument type="service" id="logger" />
+
+            <tag name="message_middleware" priority="10" />
+            <tag name="monolog.logger" channel="message" />
+        </service>
+
+        <service id="data_collector.messages" class="Symfony\Bundle\FrameworkBundle\DataCollector\MessagesDataCollector">
+            <tag name="data_collector" template="@WebProfiler/Collector/messages.html.twig" id="messages" priority="100" />
+            <tag name="message_middleware" />
+        </service>
     </services>
 </container>
