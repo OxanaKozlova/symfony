@@ -13,9 +13,12 @@ namespace Symfony\Component\Message\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
+use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Message\Handler\MessageHandlerCollection;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
@@ -53,11 +56,10 @@ class MessagePass implements CompilerPassInterface
         $busDefinition = $container->getDefinition($this->messageBusService);
         $busDefinition->replaceArgument(0, $middlewares);
 
-        $handlerResolver = $container->getDefinition($this->messageHandlerResolverService);
-        $handlerResolver->replaceArgument(0, $this->findHandlers($container));
+        $this->registerHandlers($container);
     }
 
-    private function findHandlers(ContainerBuilder $container): array
+    private function registerHandlers(ContainerBuilder $container)
     {
         $handlersByMessage = array();
 
@@ -79,7 +81,22 @@ class MessagePass implements CompilerPassInterface
             $handlersByMessage[$message] = call_user_func_array('array_merge', $handlersByMessage[$message]);
         }
 
-        return $handlersByMessage;
+        $definitions = array();
+        foreach ($handlersByMessage as $message => $handlers) {
+            if (1 === count($handlers)) {
+                $handlersByMessage[$message] = current($handlers);
+            } else {
+                $d = new Definition(MessageHandlerCollection::class, array($handlers));
+                $d->setPrivate(true);
+                $serviceId = hash('sha1', $message);
+                $definitions[$serviceId] = $d;
+                $handlersByMessage[$message] = new Reference($serviceId);
+            }
+        }
+        $container->addDefinitions($definitions);
+
+        $handlerResolver = $container->getDefinition($this->messageHandlerResolverService);
+        $handlerResolver->replaceArgument(0, ServiceLocatorTagPass::register($container, $handlersByMessage));
     }
 
     private function guessHandledClass(ContainerBuilder $container, string $serviceId): string

@@ -15,8 +15,8 @@
         <service id="Symfony\Component\Message\MessageBusInterface" alias="message_bus" />
 
         <!-- Handlers -->
-        <service id="message.handler_resolver" class="Symfony\Component\Message\HandlerLocator">
-            <argument type="collection" /> <!-- Message to handler mapping -->
+        <service id="message.handler_resolver" class="Symfony\Component\Message\ContainerHandlerLocator">
+            <argument type="service" id="service_container"/>
         </service>
 
         <service id="message.middleware.call_message_handler" class="Symfony\Component\Message\Middleware\HandleMessageMiddleware">
