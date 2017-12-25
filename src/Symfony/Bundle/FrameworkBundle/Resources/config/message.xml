@@ -12,6 +12,9 @@
             <argument type="collection" /> <!-- Middlewares -->
         </service>
 
+        <service id="Symfony\Component\Message\MessageBusInterface" alias="message_bus" />
+
+        <!-- Logging -->
         <service id="message.middleware.debug.logging" class="Symfony\Component\Message\Debug\LoggingMiddleware">
             <argument type="service" id="logger" />
 
