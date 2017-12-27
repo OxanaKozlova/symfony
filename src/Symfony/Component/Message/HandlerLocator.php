@@ -12,7 +12,7 @@
 namespace Symfony\Component\Message;
 
 use Symfony\Component\Message\Exception\NoHandlerForMessageException;
-use Symfony\Component\Message\Handler\MessageHandlerCollection;
+use Symfony\Component\Message\Handler\ChainHandler;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
@@ -41,7 +41,7 @@ class HandlerLocator implements HandlerLocatorInterface
 
         $handler = $this->messageToHandlerMapping[$messageKey];
         if ($this->isCollectionOfHandlers($handler)) {
-            $handler = new MessageHandlerCollection($handler);
+            $handler = new ChainHandler($handler);
         }
 
         return $handler;

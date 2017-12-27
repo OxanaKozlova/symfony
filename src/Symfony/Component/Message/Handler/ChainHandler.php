@@ -16,7 +16,7 @@ namespace Symfony\Component\Message\Handler;
  *
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-class MessageHandlerCollection
+class ChainHandler
 {
     /**
      * @var callable[]

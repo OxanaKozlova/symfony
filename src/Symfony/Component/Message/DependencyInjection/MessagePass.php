@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\Message\Handler\MessageHandlerCollection;
+use Symfony\Component\Message\Handler\ChainHandler;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
@@ -86,7 +86,7 @@ class MessagePass implements CompilerPassInterface
             if (1 === count($handlers)) {
                 $handlersByMessage[$message] = current($handlers);
             } else {
-                $d = new Definition(MessageHandlerCollection::class, array($handlers));
+                $d = new Definition(ChainHandler::class, array($handlers));
                 $d->setPrivate(true);
                 $serviceId = hash('sha1', $message);
                 $definitions[$serviceId] = $d;
