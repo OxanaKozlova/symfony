@@ -58,15 +58,15 @@ EOF
         $container = $this->getApplication()->getKernel()->getContainer();
 
         if (!$container->has($receiverName = $input->getArgument('receiver'))) {
-            throw new \RuntimeException(sprintf('Receiver "%s" do not exists', $receiverName));
+            throw new \RuntimeException(sprintf('Receiver "%s" does not exist', $receiverName));
         } elseif (!($receiver = $container->get($receiverName)) instanceof ReceiverInterface) {
-            throw new \RuntimeException(sprintf('Receiver "%s" is not a valid message consumer. It should implement the interface "%s"', $receiverName, ReceiverInterface::class));
+            throw new \RuntimeException(sprintf('Receiver "%s" is not a valid message consumer. It must implement the interface "%s"', $receiverName, ReceiverInterface::class));
         }
 
         if (!$container->has($busName = $input->getOption('bus'))) {
-            throw new \RuntimeException(sprintf('Bus "%s" do not exists', $busName));
+            throw new \RuntimeException(sprintf('Bus "%s" does not exist', $busName));
         } elseif (!($messageBus = $container->get($busName)) instanceof MessageBusInterface) {
-            throw new \RuntimeException(sprintf('Bus "%s" is not a valid message bus. It should implement the interface "%s"', $busName, MessageBusInterface::class));
+            throw new \RuntimeException(sprintf('Bus "%s" is not a valid message bus. It must implement the interface "%s"', $busName, MessageBusInterface::class));
         }
 
         foreach ($receiver->receive() as $message) {

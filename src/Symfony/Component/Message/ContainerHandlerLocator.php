@@ -16,27 +16,28 @@ use Symfony\Component\Message\Exception\NoHandlerForMessageException;
 
 /**
  * @author Miha Vrhovnik <miha.vrhovnik@gmail.com>
+ * @author Samuel Roze <samuel.roze@gmail.com>
  */
 class ContainerHandlerLocator implements HandlerLocatorInterface
 {
     /**
      * @var ContainerInterface
      */
-    private $serviceLocator;
+    private $container;
 
-    public function __construct(ContainerInterface $serviceLocator)
+    public function __construct(ContainerInterface $container)
     {
-        $this->serviceLocator = $serviceLocator;
+        $this->container = $container;
     }
 
     public function resolve($message): callable
     {
         $messageKey = get_class($message);
 
-        if (!$this->serviceLocator->has($messageKey)) {
+        if (!$this->container->has($messageKey)) {
             throw new NoHandlerForMessageException(sprintf('No handler for message "%s"', $messageKey));
         }
 
-        return $this->serviceLocator->get($messageKey);
+        return $this->container->get($messageKey);
     }
 }

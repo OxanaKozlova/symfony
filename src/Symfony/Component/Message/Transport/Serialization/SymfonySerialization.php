@@ -42,7 +42,7 @@ class SymfonySerialization implements DecoderInterface, EncoderInterface
         if (empty($encodedMessage['body']) || empty($encodedMessage['headers'])) {
             throw new \InvalidArgumentException('Encoded message should have at least a `body` some `headers`');
         } elseif (empty($encodedMessage['headers']['type'])) {
-            throw new \InvalidArgumentException('Encoded message do not have a `type` header');
+            throw new \InvalidArgumentException('Encoded message does not have a `type` header');
         }
 
         return $this->serializer->deserialize($encodedMessage['body'], $encodedMessage['headers']['type'], $this->format);
