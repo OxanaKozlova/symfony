@@ -74,7 +74,7 @@ EOF
                 $message = new ReceivedMessage($message);
             }
 
-            $messageBus->handle($message);
+            $messageBus->dispatch($message);
         }
     }
 }

@@ -36,7 +36,7 @@
         </service>
 
         <!-- Message encoding/decoding -->
-        <service id="message.transport.serialize_message_with_type_in_headers" class="Symfony\Component\Message\Transport\SymfonySerialization">
+        <service id="message.transport.serialize_message_with_type_in_headers" class="Symfony\Component\Message\Transport\Serialization\SymfonySerialization">
             <argument type="service" id="serializer" />
         </service>
 
