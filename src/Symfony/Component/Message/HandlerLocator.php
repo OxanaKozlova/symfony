@@ -35,7 +35,7 @@ class HandlerLocator implements HandlerLocatorInterface
     {
         $messageKey = get_class($message);
 
-        if (!array_key_exists($messageKey, $this->messageToHandlerMapping)) {
+        if (!isset($this->messageToHandlerMapping[$messageKey])) {
             throw new NoHandlerForMessageException(sprintf('No handler for message "%s"', $messageKey));
         }
 

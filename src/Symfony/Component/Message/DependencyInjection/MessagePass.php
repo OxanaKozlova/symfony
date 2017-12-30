@@ -28,14 +28,12 @@ class MessagePass implements CompilerPassInterface
     use PriorityTaggedServiceTrait;
 
     private $messageBusService;
-    private $middlewareTag;
     private $messageHandlerResolverService;
     private $handlerTag;
 
-    public function __construct(string $messageBusService = 'message_bus', string $middlewareTag = 'message_middleware', string $messageHandlerResolverService = 'message.handler_resolver', string $handlerTag = 'message_handler')
+    public function __construct(string $messageBusService = 'message_bus', string $messageHandlerResolverService = 'message.handler_resolver', string $handlerTag = 'message_handler')
     {
         $this->messageBusService = $messageBusService;
-        $this->middlewareTag = $middlewareTag;
         $this->messageHandlerResolverService = $messageHandlerResolverService;
         $this->handlerTag = $handlerTag;
     }
@@ -48,13 +46,6 @@ class MessagePass implements CompilerPassInterface
         if (!$container->hasDefinition($this->messageBusService)) {
             return;
         }
-
-        if (!$middlewares = $this->findAndSortTaggedServices($this->middlewareTag, $container)) {
-            throw new RuntimeException(sprintf('You must tag at least one service as "%s" to use the "%s" service.', $this->middlewareTag, $this->messageBusService));
-        }
-
-        $busDefinition = $container->getDefinition($this->messageBusService);
-        $busDefinition->replaceArgument(0, $middlewares);
 
         $this->registerHandlers($container);
     }

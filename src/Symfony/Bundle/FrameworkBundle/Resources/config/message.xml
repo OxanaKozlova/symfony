@@ -9,7 +9,7 @@
 
         <!-- Bus -->
         <service id="message_bus" class="Symfony\Component\Message\MessageBus" public="true">
-            <argument type="collection" /> <!-- Middlewares -->
+            <argument type="tagged" tag="message_middleware" /> <!-- Middlewares -->
         </service>
 
         <service id="Symfony\Component\Message\MessageBusInterface" alias="message_bus" />

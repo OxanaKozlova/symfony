@@ -23,11 +23,11 @@ class MessageBus implements MessageBusInterface
     private $middlewares;
 
     /**
-     * @param MiddlewareInterface[] $middlewares
+     * @param MiddlewareInterface[]|iterable $middlewares
      */
-    public function __construct(array $middlewares = array())
+    public function __construct(iterable $middlewares = array())
     {
-        $this->middlewares = $middlewares;
+        $this->middlewares = is_array($middlewares) ? array_values($middlewares) : iterator_to_array($middlewares, false);
     }
 
     /**
