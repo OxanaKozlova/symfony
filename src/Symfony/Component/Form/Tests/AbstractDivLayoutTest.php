@@ -27,11 +27,9 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
 '/div
     [
         ./label[@for="name"]
-        [
-            ./ul
-                [./li[.="[trans]Error![/trans]"]]
-                [count(./li)=1]
-        ]
+        /following-sibling::ul
+            [./li[.="[trans]Error![/trans]"]]
+            [count(./li)=1]
         /following-sibling::input[@id="name"]
     ]
 '
@@ -464,7 +462,7 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
 '/div
     [
         ./div/label
-        [./ul[./li[.="[trans]Error![/trans]"]]]
+        /following-sibling::ul[./li[.="[trans]Error![/trans]"]]
     ]
     [count(.//li[.="[trans]Error![/trans]"])=1]
 '

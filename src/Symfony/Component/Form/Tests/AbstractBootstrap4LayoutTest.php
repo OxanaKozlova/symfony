@@ -20,6 +20,51 @@ use Symfony\Component\Form\FormError;
  */
 abstract class AbstractBootstrap4LayoutTest extends AbstractBootstrap3LayoutTest
 {
+    public function testRow()
+    {
+        $form = $this->factory->createNamed('name', 'Symfony\Component\Form\Extension\Core\Type\TextType');
+        $form->addError(new FormError('[trans]Error![/trans]'));
+        $view = $form->createView();
+        $html = $this->renderRow($view);
+
+        $this->assertMatchesXpath($html,
+            '/div
+    [
+        ./label[@for="name"]
+        [
+            ./ul
+                [./li[.="[trans]Error![/trans]"]]
+                [count(./li)=1]
+        ]
+        /following-sibling::input[@id="name"]
+    ]
+'
+        );
+    }
+
+    // https://github.com/symfony/symfony/issues/2308
+    public function testNestedFormError()
+    {
+        $form = $this->factory->createNamedBuilder('name', 'Symfony\Component\Form\Extension\Core\Type\FormType')
+            ->add($this->factory
+                ->createNamedBuilder('child', 'Symfony\Component\Form\Extension\Core\Type\FormType', null, array('error_bubbling' => false))
+                ->add('grandChild', 'Symfony\Component\Form\Extension\Core\Type\FormType')
+            )
+            ->getForm();
+
+        $form->get('child')->addError(new FormError('[trans]Error![/trans]'));
+
+        $this->assertWidgetMatchesXpath($form->createView(), array(),
+            '/div
+    [
+        ./div/label
+        [./ul[./li[.="[trans]Error![/trans]"]]]
+    ]
+    [count(.//li[.="[trans]Error![/trans]"])=1]
+'
+        );
+    }
+
     public function testLabelOnForm()
     {
         $form = $this->factory->createNamed('name', 'Symfony\Component\Form\Extension\Core\Type\DateType');
