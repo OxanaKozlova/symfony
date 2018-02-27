@@ -88,6 +88,7 @@ class FormType extends BaseType
             'required' => $form->isRequired(),
             'size' => null,
             'label_attr' => $options['label_attr'],
+            'help' => $options['help'],
             'compound' => $form->getConfig()->getCompound(),
             'method' => $form->getConfig()->getMethod(),
             'action' => $form->getConfig()->getAction(),
@@ -177,10 +178,12 @@ class FormType extends BaseType
             'attr' => array(),
             'post_max_size_message' => 'The uploaded file was too large. Please try to upload a smaller file.',
             'upload_max_size_message' => $uploadMaxSizeMessage, // internal
+            'help' => '',
         ));
 
         $resolver->setAllowedTypes('label_attr', 'array');
         $resolver->setAllowedTypes('upload_max_size_message', array('callable'));
+        $resolver->setAllowedTypes('help', 'string');
     }
 
     /**
