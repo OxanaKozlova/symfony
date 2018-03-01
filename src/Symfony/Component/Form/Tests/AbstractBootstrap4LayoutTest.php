@@ -160,6 +160,7 @@ abstract class AbstractBootstrap4LayoutTest extends AbstractBootstrap3LayoutTest
 
         $this->assertMatchesXpath($html,
 '/small
+    [@id="name_help"]
     [@class="form-text text-muted"]
     [.="[trans]Help text test![/trans]"]
 '
