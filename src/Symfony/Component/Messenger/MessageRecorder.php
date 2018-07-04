@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\Messenger;
 
 /**
@@ -8,7 +17,7 @@ namespace Symfony\Component\Messenger;
  */
 class MessageRecorder implements MessageRecorderInterface
 {
-    private $messages = [];
+    private $messages = array();
 
     /**
      * {@inheritdoc}
@@ -23,7 +32,7 @@ class MessageRecorder implements MessageRecorderInterface
      */
     public function eraseMessages(): void
     {
-        $this->messages = [];
+        $this->messages = array();
     }
 
     /**

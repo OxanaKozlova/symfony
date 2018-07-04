@@ -299,7 +299,7 @@ class MessengerPass implements CompilerPassInterface
                 $count = \count($definition->getArguments());
                 foreach (array_values($arguments ?? array()) as $key => $argument) {
                     // Convert argument to references if needed.
-                    if (is_string($argument) && $argument[0] === '@') {
+                    if (is_string($argument) && '@' === $argument[0]) {
                         $argument = new Reference(substr($argument, 1));
                     }
 
