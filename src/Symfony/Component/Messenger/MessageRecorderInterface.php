@@ -22,12 +22,12 @@ interface MessageRecorderInterface
      *
      * @return object[]
      */
-    public function recordedMessages(): array;
+    public function fetch(): array;
 
     /**
      * Erase messages that were recorded since the last call to eraseMessages().
      */
-    public function eraseMessages(): void;
+    public function erase(): void;
 
     /**
      * Record a message.

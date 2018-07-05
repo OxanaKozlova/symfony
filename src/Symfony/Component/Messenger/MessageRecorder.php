@@ -22,7 +22,7 @@ class MessageRecorder implements MessageRecorderInterface
     /**
      * {@inheritdoc}
      */
-    public function recordedMessages(): array
+    public function fetch(): array
     {
         return $this->messages;
     }
@@ -30,7 +30,7 @@ class MessageRecorder implements MessageRecorderInterface
     /**
      * {@inheritdoc}
      */
-    public function eraseMessages(): void
+    public function erase(): void
     {
         $this->messages = array();
     }
