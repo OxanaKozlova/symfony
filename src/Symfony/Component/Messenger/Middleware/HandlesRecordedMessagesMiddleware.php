@@ -46,7 +46,7 @@ class HandlesRecordedMessagesMiddleware implements MiddlewareInterface
         }
 
         $exceptions = array();
-        while(!empty($recordedMessages = $this->messageRecorder->fetch())) {
+        while (!empty($recordedMessages = $this->messageRecorder->fetch())) {
             $this->messageRecorder->erase();
             // Assert: The message recorder is empty, all messages are in $recordedMessages
 

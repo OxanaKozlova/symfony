@@ -30,7 +30,7 @@ class MessageRecorderHandlerException extends \RuntimeException implements Excep
             }, $exceptions))
         );
 
-        return new MessageRecorderHandlerException($message);
+        return new self($message);
     }
 
     public function getExceptions(): array
