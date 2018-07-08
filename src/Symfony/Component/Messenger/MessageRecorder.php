@@ -11,9 +11,6 @@
 
 namespace Symfony\Component\Messenger;
 
-use Symfony\Component\DependencyInjection\ResettableContainerInterface;
-
-
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  * @author Matthias Noback <matthiasnoback@gmail.com>
