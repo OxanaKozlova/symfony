@@ -41,6 +41,7 @@
         </service>
 
         <service id="translation.loader.xliff" class="Symfony\Component\Translation\Loader\XliffFileLoader">
+            <argument type="service" id="Symfony\Component\Translation\Util\XliffExtractor" />
             <tag name="translation.loader" alias="xlf" legacy-alias="xliff" />
         </service>
 
@@ -81,6 +82,7 @@
         </service>
 
         <service id="translation.dumper.xliff" class="Symfony\Component\Translation\Dumper\XliffFileDumper">
+            <argument type="service" id="Symfony\Component\Translation\Util\XliffDumper" />
             <tag name="translation.dumper" alias="xlf" />
         </service>
 
@@ -145,5 +147,8 @@
             <argument type="service" id="request_stack" />
             <tag name="kernel.event_subscriber" />
         </service>
+
+        <service id="Symfony\Component\Translation\Util\XliffDumper" />
+        <service id="Symfony\Component\Translation\Util\XliffExtractor" />
     </services>
 </container>

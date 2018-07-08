@@ -14,6 +14,7 @@ namespace Symfony\Component\Translation\Tests\Dumper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Translation\MessageCatalogue;
 use Symfony\Component\Translation\Dumper\XliffFileDumper;
+use Symfony\Component\Translation\Util\XliffDumper;
 
 class XliffFileDumperTest extends TestCase
 {
@@ -28,7 +29,7 @@ class XliffFileDumperTest extends TestCase
         $catalogue->setMetadata('foo', array('notes' => array(array('priority' => 1, 'from' => 'bar', 'content' => 'baz'))));
         $catalogue->setMetadata('key', array('notes' => array(array('content' => 'baz'), array('content' => 'qux'))));
 
-        $dumper = new XliffFileDumper();
+        $dumper = $this->createFileDumper();
 
         $this->assertStringEqualsFile(
             __DIR__.'/../fixtures/resources-clean.xlf',
@@ -46,7 +47,7 @@ class XliffFileDumperTest extends TestCase
         ));
         $catalogue->setMetadata('key', array('target-attributes' => array('order' => 1)));
 
-        $dumper = new XliffFileDumper();
+        $dumper = $this->createFileDumper();
 
         $this->assertStringEqualsFile(
             __DIR__.'/../fixtures/resources-2.0-clean.xlf',
@@ -64,7 +65,7 @@ class XliffFileDumperTest extends TestCase
         $catalogue = new MessageCatalogue('en_US');
         $catalogue->add(array('foo' => 'bar'));
 
-        $dumper = new XliffFileDumper();
+        $dumper = $this->createFileDumper();
 
         $this->assertStringEqualsFile(
             __DIR__.'/../fixtures/resources-tool-info.xlf',
@@ -80,7 +81,7 @@ class XliffFileDumperTest extends TestCase
         ));
         $catalogue->setMetadata('foo', array('target-attributes' => array('state' => 'needs-translation')));
 
-        $dumper = new XliffFileDumper();
+        $dumper = $this->createFileDumper();
 
         $this->assertStringEqualsFile(
             __DIR__.'/../fixtures/resources-target-attributes.xlf',
@@ -105,11 +106,16 @@ class XliffFileDumperTest extends TestCase
             array('appliesTo' => 'target', 'category' => 'quality', 'content' => 'Fuzzy'),
         )));
 
-        $dumper = new XliffFileDumper();
+        $dumper = $this->createFileDumper();
 
         $this->assertStringEqualsFile(
             __DIR__.'/../fixtures/resources-notes-meta.xlf',
             $dumper->formatCatalogue($catalogue, 'messages', array('default_locale' => 'fr_FR', 'xliff_version' => '2.0'))
         );
+    }
+
+    private function createFileDumper(): XliffFileDumper
+    {
+        return new XliffFileDumper(new XliffDumper());
     }
 }
