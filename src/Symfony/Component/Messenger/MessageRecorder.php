@@ -11,6 +11,9 @@
 
 namespace Symfony\Component\Messenger;
 
+use Symfony\Component\DependencyInjection\ResettableContainerInterface;
+
+
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  * @author Matthias Noback <matthiasnoback@gmail.com>
@@ -30,7 +33,7 @@ class MessageRecorder implements MessageRecorderInterface
     /**
      * {@inheritdoc}
      */
-    public function erase(): void
+    public function reset()
     {
         $this->messages = array();
     }

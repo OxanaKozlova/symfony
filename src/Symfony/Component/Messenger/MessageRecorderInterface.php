@@ -27,12 +27,12 @@ interface MessageRecorderInterface
     /**
      * Erase messages that were recorded since the last call to eraseMessages().
      */
-    public function erase(): void;
+    public function reset();
 
     /**
      * Record a message.
      *
      * @param object $message
      */
-    public function record($message): void;
+    public function record($message);
 }

@@ -34,7 +34,7 @@
             <argument type="service" id="validator" />
         </service>
 
-        <service id="messenger.middleware.handles_recorded_messages" class="Symfony\Component\Messenger\Middleware\HandlesRecordedMessagesMiddleware" abstract="true">
+        <service id="messenger.middleware.record_messages" class="Symfony\Component\Messenger\Middleware\HandlesRecordedMessagesMiddleware" abstract="true">
             <argument type="service" id="message_bus" />
             <argument type="service" id="messenger.recorder" />
         </service>
@@ -74,7 +74,9 @@
         </service>
 
         <!-- Message recorder -->
-        <service id="messenger.recorder" class="Symfony\Component\Messenger\MessageRecorder" />
+        <service id="messenger.recorder" class="Symfony\Component\Messenger\MessageRecorder">
+            <tag name="kernel.reset" />
+        </service>
         <service id="Symfony\Component\Messenger\MessageRecorderInterface" alias="messenger.recorder" />
     </services>
 </container>

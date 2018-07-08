@@ -21,7 +21,7 @@ class MessageRecorderHandlerException extends \RuntimeException implements Excep
 {
     private $exceptions = array();
 
-    public static function create(array $exceptions): self
+    public function __construct(array $exceptions)
     {
         $message = sprintf(
             "One or more handlers for recorded messages threw an exception. Their messages were: \n\n%s",
@@ -30,7 +30,8 @@ class MessageRecorderHandlerException extends \RuntimeException implements Excep
             }, $exceptions))
         );
 
-        return new self($message);
+        $this->exceptions = $exceptions;
+        parent::__construct($message);
     }
 
     public function getExceptions(): array
