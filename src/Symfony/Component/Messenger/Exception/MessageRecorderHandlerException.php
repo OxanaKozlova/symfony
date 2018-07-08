@@ -24,7 +24,7 @@ class MessageRecorderHandlerException extends \RuntimeException implements Excep
     public static function create(array $exceptions): self
     {
         $message = sprintf(
-            "One or more handlers for reordered messages threw an exception. Their messages were: \n\n%s",
+            "One or more handlers for recorded messages threw an exception. Their messages were: \n\n%s",
             implode(", \n", array_map(function (\Throwable $e) {
                 return $e->getMessage();
             }, $exceptions))
