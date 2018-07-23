@@ -12,19 +12,19 @@
 namespace Symfony\Component\Messenger\Exception;
 
 /**
- * When handling recorded messaged one or more handlers caused an exception.
- * This exception contains all those handler exceptions.
+ * When handling messages, sore handlers caused an exception. This exception
+ * contains all those handler exceptions.
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-class MessageRecorderHandlerException extends \RuntimeException implements ExceptionInterface
+class MessageHandlingException extends \RuntimeException implements ExceptionInterface
 {
     private $exceptions = array();
 
     public function __construct(array $exceptions)
     {
         $message = sprintf(
-            "One or more handlers for recorded messages threw an exception. Their messages were: \n\n%s",
+            "Some handlers for recorded messages threw an exception. Their messages were: \n\n%s",
             implode(", \n", array_map(function (\Throwable $e) {
                 return $e->getMessage();
             }, $exceptions))

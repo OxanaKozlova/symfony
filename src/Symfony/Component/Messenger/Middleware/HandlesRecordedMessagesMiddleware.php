@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Messenger\Middleware;
 
-use Symfony\Component\Messenger\Exception\MessageRecorderHandlerException;
+use Symfony\Component\Messenger\Exception\MessageHandlingException;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\MessageRecorderInterface;
 
@@ -35,19 +35,19 @@ class HandlesRecordedMessagesMiddleware implements MiddlewareInterface
     public function handle($message, callable $next)
     {
         // Make sure the recorder is empty before we begin
-        $this->messageRecorder->erase();
+        $this->messageRecorder->reset();
 
         try {
             $next($message);
         } catch (\Throwable $exception) {
-            $this->messageRecorder->erase();
+            $this->messageRecorder->reset();
 
             throw $exception;
         }
 
         $exceptions = array();
         while (!empty($recordedMessages = $this->messageRecorder->fetch())) {
-            $this->messageRecorder->erase();
+            $this->messageRecorder->reset();
             // Assert: The message recorder is empty, all messages are in $recordedMessages
 
             foreach ($recordedMessages as $recordedMessage) {
@@ -60,7 +60,10 @@ class HandlesRecordedMessagesMiddleware implements MiddlewareInterface
         }
 
         if (!empty($exceptions)) {
-            throw MessageRecorderHandlerException::create($exceptions);
+            if (count($exceptions) === 1) {
+                throw $exceptions[0];
+            }
+            throw new MessageHandlingException($exceptions);
         }
     }
 }

@@ -11,11 +11,13 @@
 
 namespace Symfony\Component\Messenger;
 
+use Symfony\Contracts\Service\ResetInterface;
+
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  * @author Matthias Noback <matthiasnoback@gmail.com>
  */
-interface MessageRecorderInterface
+interface MessageRecorderInterface extends ResetInterface
 {
     /**
      * Fetch recorded messages.
@@ -23,11 +25,6 @@ interface MessageRecorderInterface
      * @return object[]
      */
     public function fetch(): array;
-
-    /**
-     * Erase messages that were recorded since the last call to eraseMessages().
-     */
-    public function reset();
 
     /**
      * Record a message.
