@@ -60,7 +60,7 @@ class HandlesRecordedMessagesMiddleware implements MiddlewareInterface
         }
 
         if (!empty($exceptions)) {
-            if (count($exceptions) === 1) {
+            if (1 === count($exceptions)) {
                 throw $exceptions[0];
             }
             throw new MessageHandlingException($exceptions);
