@@ -38,7 +38,7 @@ class HandlesRecordedMessagesMiddleware implements MiddlewareInterface
         $this->messageRecorder->reset();
 
         try {
-            $next($message);
+            $returnData = $next($message);
         } catch (\Throwable $exception) {
             $this->messageRecorder->reset();
 
@@ -65,5 +65,7 @@ class HandlesRecordedMessagesMiddleware implements MiddlewareInterface
             }
             throw new MessageHandlingException($exceptions);
         }
+
+        return $returnData;
     }
 }
