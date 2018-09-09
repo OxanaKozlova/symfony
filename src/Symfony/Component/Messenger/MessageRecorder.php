@@ -11,20 +11,30 @@
 
 namespace Symfony\Component\Messenger;
 
+use Symfony\Component\Cache\ResettableInterface;
+
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  * @author Matthias Noback <matthiasnoback@gmail.com>
  */
-class MessageRecorder implements MessageRecorderInterface
+class MessageRecorder implements MessageRecorderInterface, RecordedMessageContainerInterface, ResettableInterface
 {
     private $messages = array();
 
     /**
      * {@inheritdoc}
      */
-    public function fetch(): array
+    public function getRecordedMessages(): array
     {
         return $this->messages;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function resetRecordedMessages(): void
+    {
+        $this->reset();
     }
 
     /**

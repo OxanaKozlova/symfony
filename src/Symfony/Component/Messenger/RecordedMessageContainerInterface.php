@@ -11,18 +11,21 @@
 
 namespace Symfony\Component\Messenger;
 
-use Symfony\Contracts\Service\ResetInterface;
-
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  * @author Matthias Noback <matthiasnoback@gmail.com>
  */
-interface MessageRecorderInterface
+interface RecordedMessageContainerInterface
 {
     /**
-     * Record a message.
+     * Fetch recorded messages.
      *
-     * @param object $message
+     * @return object[]
      */
-    public function record($message);
+    public function getRecordedMessages(): array;
+
+    /**
+     * Remove all recorded messages.
+     */
+    public function resetRecordedMessages(): void;
 }

@@ -13,7 +13,7 @@ namespace Symfony\Component\Messenger\Middleware;
 
 use Symfony\Component\Messenger\Exception\MessageHandlingException;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\MessageRecorderInterface;
+use Symfony\Component\Messenger\RecordedMessageContainerInterface;
 
 /**
  * A middleware that takes all recorded messages and dispatch them to the bus.
@@ -26,7 +26,7 @@ class HandlesRecordedMessagesMiddleware implements MiddlewareInterface
     private $messageRecorder;
     private $messageBus;
 
-    public function __construct(MessageBusInterface $messageBus, MessageRecorderInterface $messageRecorder)
+    public function __construct(MessageBusInterface $messageBus, RecordedMessageContainerInterface $messageRecorder)
     {
         $this->messageRecorder = $messageRecorder;
         $this->messageBus = $messageBus;
@@ -35,19 +35,19 @@ class HandlesRecordedMessagesMiddleware implements MiddlewareInterface
     public function handle($message, callable $next)
     {
         // Make sure the recorder is empty before we begin
-        $this->messageRecorder->reset();
+        $this->messageRecorder->resetRecordedMessages();
 
         try {
             $returnData = $next($message);
         } catch (\Throwable $exception) {
-            $this->messageRecorder->reset();
+            $this->messageRecorder->resetRecordedMessages();
 
             throw $exception;
         }
 
         $exceptions = array();
-        while (!empty($recordedMessages = $this->messageRecorder->fetch())) {
-            $this->messageRecorder->reset();
+        while (!empty($recordedMessages = $this->messageRecorder->getRecordedMessages())) {
+            $this->messageRecorder->resetRecordedMessages();
             // Assert: The message recorder is empty, all messages are in $recordedMessages
 
             foreach ($recordedMessages as $recordedMessage) {
