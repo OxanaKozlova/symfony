@@ -12,7 +12,7 @@
 namespace Symfony\Component\Messenger\Exception;
 
 /**
- * When handling messages, sore handlers caused an exception. This exception
+ * When handling messages, some handlers caused an exception. This exception
  * contains all those handler exceptions.
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
