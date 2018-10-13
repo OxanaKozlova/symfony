@@ -26,10 +26,8 @@ use Symfony\Component\Messenger\Middleware\Configuration\Transaction;
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  * @author Matthias Noback <matthiasnoback@gmail.com>
  */
-class MessengerEntityMessageCollector implements EventSubscriber
+class EntityMessageCollector implements EventSubscriber
 {
-    private $collectedMessage = array();
-
     private $messageBus;
 
     public function __construct(MessageBusInterface $messageBus)
