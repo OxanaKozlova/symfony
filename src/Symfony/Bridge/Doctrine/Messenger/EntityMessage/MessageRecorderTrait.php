@@ -20,7 +20,7 @@ namespace Symfony\Bridge\Doctrine\Messenger\EntityMessage;
  */
 trait MessageRecorderTrait
 {
-    private $messages = [];
+    private $messages = array();
 
     /**
      * {@inheritdoc}
@@ -35,7 +35,7 @@ trait MessageRecorderTrait
      */
     public function resetRecordedMessages(): void
     {
-        $this->messages = [];
+        $this->messages = array();
     }
 
     /**
