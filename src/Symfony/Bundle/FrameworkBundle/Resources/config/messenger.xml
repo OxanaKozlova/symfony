@@ -28,7 +28,7 @@
             <argument /> <!-- Bus handler resolver -->
         </service>
 
-        <service id="messenger.middleware.handle_message_in_new_transaction" class="Symfony\Component\Messenger\Middleware\HandleMessageInNewTransactionMiddleware" abstract="true" />
+        <service id="messenger.middleware.handle_message_in_new_transaction" class="Symfony\Component\Messenger\Middleware\HandleMessageInNewTransactionMiddleware" />
 
         <service id="messenger.middleware.validation" class="Symfony\Component\Messenger\Middleware\ValidationMiddleware">
             <argument type="service" id="validator" />

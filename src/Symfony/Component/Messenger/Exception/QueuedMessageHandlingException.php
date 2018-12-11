@@ -12,26 +12,27 @@
 namespace Symfony\Component\Messenger\Exception;
 
 /**
- * When handling messages, some handlers caused an exception. This exception
- * contains all those handler exceptions.
+ * When handling queued messages from {@link HandleMessageInNewTransactionMiddleware},
+ * some handlers caused an exception. This exception contains all those handler exceptions.
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-class MessageHandlingException extends \RuntimeException implements ExceptionInterface
+class QueuedMessageHandlingException extends \RuntimeException implements ExceptionInterface
 {
-    private $exceptions = array();
+    private $exceptions;
 
     public function __construct(array $exceptions)
     {
         $message = sprintf(
-            "Some handlers for recorded messages threw an exception. Their messages were: \n\n%s",
+            "Some handlers for queued messages threw an exception: \n\n%s",
             implode(", \n", array_map(function (\Throwable $e) {
-                return $e->getMessage();
+                return \get_class($e).': '.$e->getMessage();
             }, $exceptions))
         );
 
         $this->exceptions = $exceptions;
-        parent::__construct($message);
+
+        parent::__construct($message, 0, 1 === \count($exceptions) ? $exceptions[0] : null);
     }
 
     public function getExceptions(): array
