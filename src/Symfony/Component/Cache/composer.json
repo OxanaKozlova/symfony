@@ -41,11 +41,5 @@
             "/Tests/"
         ]
     },
-    "minimum-stability": "dev",
-    "config": {
-        "preferred-install": {
-            "symfony/*": "source",
-            "*": "auto"
-        }
-    }
+    "minimum-stability": "dev"
 }

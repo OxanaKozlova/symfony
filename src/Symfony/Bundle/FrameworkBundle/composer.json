@@ -98,7 +98,7 @@
     },
     "config": {
         "preferred-install": {
-            "symfony/*": "source",
+            "symfony/form": "source",
             "*": "auto"
         }
     }
