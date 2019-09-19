@@ -42,9 +42,10 @@
         ]
     },
     "minimum-stability": "dev",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.4-dev"
+    "config": {
+        "preferred-install": {
+            "symfony/*": "source",
+            "*": "auto"
         }
     }
 }

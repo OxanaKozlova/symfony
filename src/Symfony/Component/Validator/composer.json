@@ -68,7 +68,9 @@
         }
     },
     "config": {
-        "symfony/*": "source",
-        "*": "auto"
+        "preferred-install": {
+            "symfony/*": "source",
+            "*": "auto"
+        }
     }
 }
