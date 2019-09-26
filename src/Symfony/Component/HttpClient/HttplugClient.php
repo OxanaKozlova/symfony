@@ -11,9 +11,13 @@
 
 namespace Symfony\Component\HttpClient;
 
+use Http\Client\Exception;
 use Http\Client\Exception\NetworkException;
 use Http\Client\Exception\RequestException;
+use Http\Client\HttpAsyncClient;
 use Http\Client\HttpClient;
+use Http\Client\Promise\HttpFulfilledPromise;
+use Http\Client\Promise\HttpRejectedPromise;
 use Http\Message\RequestFactory;
 use Http\Message\StreamFactory;
 use Http\Message\UriFactory;
@@ -49,7 +53,7 @@ if (!interface_exists(RequestFactory::class)) {
  *
  * @author Nicolas Grekas <p@tchwork.com>
  */
-final class HttplugClient implements HttpClient, RequestFactory, StreamFactory, UriFactory
+final class HttplugClient implements HttpClient, RequestFactory, StreamFactory, UriFactory, HttpAsyncClient
 {
     private $client;
 
@@ -69,6 +73,18 @@ final class HttplugClient implements HttpClient, RequestFactory, StreamFactory, 
             throw new RequestException($e->getMessage(), $request, $e);
         } catch (NetworkExceptionInterface $e) {
             throw new NetworkException($e->getMessage(), $request, $e);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function sendAsyncRequest(RequestInterface $request)
+    {
+        try {
+            return new HttpFulfilledPromise($this->sendRequest($request));
+        } catch (Exception $e) {
+            return new HttpRejectedPromise($e);
         }
     }
 
