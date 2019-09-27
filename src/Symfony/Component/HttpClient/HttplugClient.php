@@ -16,8 +16,6 @@ use Http\Client\Exception\NetworkException;
 use Http\Client\Exception\RequestException;
 use Http\Client\HttpAsyncClient;
 use Http\Client\HttpClient;
-use Http\Client\Promise\HttpFulfilledPromise;
-use Http\Client\Promise\HttpRejectedPromise;
 use Http\Message\RequestFactory;
 use Http\Message\StreamFactory;
 use Http\Message\UriFactory;
@@ -110,14 +108,13 @@ final class HttplugClient implements HttpClient, RequestFactory, StreamFactory, 
                 'http_version' => '1.0' === $request->getProtocolVersion() ? '1.0' : null,
             ]);
 
-            return HttplugPromise::create($response, $this->client, $this->responseFactory, $this->streamFactory);
+            return HttplugPromise::create($request, $response, $this->client, $this->responseFactory, $this->streamFactory);
         } catch (TransportExceptionInterface $e) {
-            // TODO fix this exceptions
             if ($e instanceof \InvalidArgumentException) {
-                throw new Psr18RequestException($e, $request);
+                throw new RequestException($e->getMessage(), $request, $e);
             }
 
-            throw new Psr18NetworkException($e, $request);
+            throw new NetworkException($e->getMessage(), $request, $e);
         }
     }
 

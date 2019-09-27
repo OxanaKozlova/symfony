@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Symfony\Component\HttpClient\Httplug;
 
 use Http\Promise\Promise;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -23,12 +24,13 @@ class HttplugPromise implements Promise
     }
 
     public static function create(
-        ResponseInterface $response,
+        RequestInterface $psr7Request,
+        ResponseInterface $symfonyResponse,
         HttpClientInterface $client,
         ResponseFactoryInterface $responseFactory,
         StreamFactoryInterface $streamFactory
     ): self {
-        return new self(new CorePromise($response, $client, $responseFactory, $streamFactory));
+        return new self(new CorePromise($psr7Request, $symfonyResponse, $client, $responseFactory, $streamFactory));
     }
 
     /**

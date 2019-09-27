@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Symfony\Component\HttpClient\Httplug;
 
 use Http\Client\Exception;
+use Http\Client\Exception\NetworkException;
+use Http\Client\Exception\RequestException;
 use Http\Promise\Promise;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -25,6 +27,13 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 class CorePromise
 {
+    /**
+     * The PSR7 request.
+     *
+     * @var RequestInterface
+     */
+    private $request;
+
     /**
      * The Symfony response.
      *
@@ -83,11 +92,13 @@ class CorePromise
     private $onRejected = [];
 
     public function __construct(
+        RequestInterface $psr7Request,
         ResponseInterface $symfonyResponse,
         HttpClientInterface $client,
         ResponseFactoryInterface $responseFactory,
         StreamFactoryInterface $streamFactory
     ) {
+        $this->request = $psr7Request;
         $this->response = $symfonyResponse;
         $this->client = $client;
         $this->responseFactory = $responseFactory;
@@ -99,46 +110,34 @@ class CorePromise
     {
         try {
             $headers = $this->response->getHeaders(false);
-            $content = $this->response->getContent(false);
             $this->state = Promise::FULFILLED;
         } catch (TransportExceptionInterface $e) {
             $this->state = Promise::REJECTED;
-            $this->handleFailedRequest();
+            if ($e instanceof \InvalidArgumentException) {
+                $this->exception =  new RequestException($e->getMessage(), $this->request, $e);
+            }
+
+            $this->exception =  new NetworkException($e->getMessage(), $this->request, $e);
+
             return;
         }
 
-        try {
-            $psrResponse = $this->responseFactory->createResponse($this->response->getStatusCode());
+        $psrResponse = $this->responseFactory->createResponse($this->response->getStatusCode());
 
-            foreach ($headers as $name => $values) {
-                foreach ($values as $value) {
-                    $psrResponse = $psrResponse->withAddedHeader($name, $value);
-                }
+        foreach ($headers as $name => $values) {
+            foreach ($values as $value) {
+                $psrResponse = $psrResponse->withAddedHeader($name, $value);
             }
-
-            $body = isset(class_uses($this->response)[ResponseTrait::class]) ? $this->response->toStream(false) : StreamWrapper::createResource($this->response, $this->client);
-            $body = $this->streamFactory->createStreamFromResource($body);
-
-            if ($body->isSeekable()) {
-                $body->seek(0);
-            }
-
-            return $this->httplugResponse = $psrResponse->withBody($body);
-        } catch (TransportExceptionInterface $e) {
-            // TODO redo these
-            if ($e instanceof \InvalidArgumentException) {
-                throw new Psr18RequestException($e, $request);
-            }
-
-            throw new Psr18NetworkException($e, $request);
         }
-    }
 
-    private function handleFailedRequest()
-    {
-        // TODO create a proper HTTPlug exception
+        $body = isset(class_uses($this->response)[ResponseTrait::class]) ? $this->response->toStream(false) : StreamWrapper::createResource($this->response, $this->client);
+        $body = $this->streamFactory->createStreamFromResource($body);
 
-        $this->exception = // Something
+        if ($body->isSeekable()) {
+            $body->seek(0);
+        }
+
+        return $this->httplugResponse = $psrResponse->withBody($body);
     }
 
     /**
