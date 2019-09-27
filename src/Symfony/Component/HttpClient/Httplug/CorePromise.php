@@ -110,34 +110,12 @@ class CorePromise
     {
         try {
             $headers = $this->response->getHeaders(false);
-            $this->state = Promise::FULFILLED;
         } catch (TransportExceptionInterface $e) {
-            $this->state = Promise::REJECTED;
-            if ($e instanceof \InvalidArgumentException) {
-                $this->exception =  new RequestException($e->getMessage(), $this->request, $e);
-            }
-
-            $this->exception =  new NetworkException($e->getMessage(), $this->request, $e);
+            $this->reject($e);
 
             return;
         }
-
-        $psrResponse = $this->responseFactory->createResponse($this->response->getStatusCode());
-
-        foreach ($headers as $name => $values) {
-            foreach ($values as $value) {
-                $psrResponse = $psrResponse->withAddedHeader($name, $value);
-            }
-        }
-
-        $body = isset(class_uses($this->response)[ResponseTrait::class]) ? $this->response->toStream(false) : StreamWrapper::createResource($this->response, $this->client);
-        $body = $this->streamFactory->createStreamFromResource($body);
-
-        if ($body->isSeekable()) {
-            $body->seek(0);
-        }
-
-        return $this->httplugResponse = $psrResponse->withBody($body);
+        $this->fulfill($headers);
     }
 
     /**
@@ -197,5 +175,71 @@ class CorePromise
         }
 
         return $this->exception;
+    }
+
+
+    /**
+     * Fulfill promise.
+     */
+    private function fulfill(array $headers)
+    {
+        $this->state = Promise::FULFILLED;
+        try {
+            $psr7Response = $this->responseFactory->createResponse($this->response->getStatusCode());
+
+            foreach ($headers as $name => $values) {
+                foreach ($values as $value) {
+                    $psr7Response = $psr7Response->withAddedHeader($name, $value);
+                }
+            }
+
+            $body = isset(class_uses($this->response)[ResponseTrait::class]) ? $this->response->toStream(false) : StreamWrapper::createResource($this->response, $this->client);
+            $body = $this->streamFactory->createStreamFromResource($body);
+
+            if ($body->isSeekable()) {
+                $body->seek(0);
+            }
+
+            $psr7Response = $psr7Response->withBody($body);
+        } catch (\RuntimeException $e) {
+            $exception = new Exception\TransferException($e->getMessage(), $e->getCode(), $e);
+            $this->reject($exception);
+
+            return;
+        }
+
+        while (count($this->onFulfilled) > 0) {
+            $callback = array_shift($this->onFulfilled);
+            $psr7Response = call_user_func($callback, $psr7Response);
+        }
+
+        if ($psr7Response instanceof \Psr\Http\Message\ResponseInterface) {
+            $this->httplugResponse = $psr7Response;
+        }
+    }
+
+    /**
+     * Reject promise.
+     *
+     * @param Exception $exception Reject reason
+     */
+    private function reject(\Exception $exception)
+    {
+        $this->state = Promise::REJECTED;
+        if ($exception instanceof \InvalidArgumentException) {
+            $this->exception =  new RequestException($exception->getMessage(), $this->request, $exception);
+        } else {
+            $this->exception = new NetworkException($exception->getMessage(), $this->request, $exception);
+        }
+
+        while (count($this->onRejected) > 0) {
+            $callback = array_shift($this->onRejected);
+            try {
+                $exception = call_user_func($callback, $this->exception);
+                $this->exception = $exception;
+            } catch (\Exception $exception) {
+                $this->exception = $exception;
+            }
+        }
     }
 }

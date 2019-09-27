@@ -49,11 +49,11 @@ class HttplugClientTest extends TestCase
         $promise = $client->sendAsyncRequest($client->createRequest('GET', 'http://localhost:8057'));
         $successCallableCalled = false;
         $failureCallableCalled = false;
-        $promise->then(function (ResponseInterface $response) use (&$callableCalled) {
-            $callableCalled = true;
+        $promise->then(function (ResponseInterface $response) use (&$successCallableCalled) {
+            $successCallableCalled = true;
 
             return $response;
-        }, function (\Http\Client\Exception $exception) use (&$failureCallableCalled) {
+        }, function (\Exception $exception) use (&$failureCallableCalled) {
             $failureCallableCalled = true;
 
             throw $exception;
@@ -103,12 +103,11 @@ class HttplugClientTest extends TestCase
             $callableCalled = true;
 
             return $response;
-        }, function (\Http\Client\Exception $exception) use (&$failureCallableCalled) {
+        }, function (\Exception $exception) use (&$failureCallableCalled) {
             $failureCallableCalled = true;
 
             throw $exception;
         });
-
 
         $promise->wait(false);
         $this->assertFalse($successCallableCalled, 'Success callable should not be called when request fails.');
