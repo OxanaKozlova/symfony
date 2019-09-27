@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Symfony\Component\HttpClient\Httplug;
 
 use Http\Promise\Promise;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
@@ -19,11 +22,18 @@ class HttplugPromise implements Promise
         $this->core = $promise;
     }
 
-    public static function create(ResponseInterface $response): self
-    {
-        return new self(new CorePromise($response));
+    public static function create(
+        ResponseInterface $response,
+        HttpClientInterface $client,
+        ResponseFactoryInterface $responseFactory,
+        StreamFactoryInterface $streamFactory
+    ): self {
+        return new self(new CorePromise($response, $client, $responseFactory, $streamFactory));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if ($onFulfilled) {
@@ -36,11 +46,17 @@ class HttplugPromise implements Promise
         return new self($this->core);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getState()
     {
         $this->core->getState();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function wait($unwrap = true)
     {
         $this->core->wait();
@@ -49,7 +65,7 @@ class HttplugPromise implements Promise
             return null;
         }
 
-        if ($this->core->getState() === self::REJECTED) {
+        if (self::REJECTED === $this->core->getState()) {
             throw $this->core->getException();
         }
 

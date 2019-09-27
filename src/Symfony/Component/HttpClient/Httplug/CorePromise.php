@@ -7,8 +7,15 @@ namespace Symfony\Component\HttpClient\Httplug;
 use Http\Client\Exception;
 use Http\Promise\Promise;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Symfony\Component\HttpClient\Psr18NetworkException;
+use Symfony\Component\HttpClient\Psr18RequestException;
+use Symfony\Component\HttpClient\Response\ResponseTrait;
+use Symfony\Component\HttpClient\Response\StreamWrapper;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
@@ -24,6 +31,21 @@ class CorePromise
      * @var ResponseInterface
      */
     private $response;
+
+    /**
+     * @var HttpClientInterface
+     */
+    private $client;
+
+    /**
+     * @var StreamFactoryInterface
+     */
+    private $responseFactory;
+
+    /**
+     * @var StreamFactoryInterface
+     */
+    private $streamFactory;
 
     /**
      * The HTTPlug response.
@@ -60,12 +82,18 @@ class CorePromise
      */
     private $onRejected = [];
 
-    public function __construct(ResponseInterface $symfonyResponse)
-    {
+    public function __construct(
+        ResponseInterface $symfonyResponse,
+        HttpClientInterface $client,
+        ResponseFactoryInterface $responseFactory,
+        StreamFactoryInterface $streamFactory
+    ) {
         $this->response = $symfonyResponse;
+        $this->client = $client;
+        $this->responseFactory = $responseFactory;
+        $this->streamFactory = $streamFactory;
         $this->state = Promise::PENDING;
     }
-
 
     public function wait()
     {
@@ -79,8 +107,31 @@ class CorePromise
             return;
         }
 
-        // TODO convert symfony response to httplgu response
-        $this->httplugResponse = // Something
+        try {
+            $psrResponse = $this->responseFactory->createResponse($this->response->getStatusCode());
+
+            foreach ($headers as $name => $values) {
+                foreach ($values as $value) {
+                    $psrResponse = $psrResponse->withAddedHeader($name, $value);
+                }
+            }
+
+            $body = isset(class_uses($this->response)[ResponseTrait::class]) ? $this->response->toStream(false) : StreamWrapper::createResource($this->response, $this->client);
+            $body = $this->streamFactory->createStreamFromResource($body);
+
+            if ($body->isSeekable()) {
+                $body->seek(0);
+            }
+
+            return $this->httplugResponse = $psrResponse->withBody($body);
+        } catch (TransportExceptionInterface $e) {
+            // TODO redo these
+            if ($e instanceof \InvalidArgumentException) {
+                throw new Psr18RequestException($e, $request);
+            }
+
+            throw new Psr18NetworkException($e, $request);
+        }
     }
 
     private function handleFailedRequest()
@@ -131,7 +182,6 @@ class CorePromise
         return $this->state;
     }
 
-
     public function getResponse()
     {
         if (null === $this->httplugResponse) {
@@ -140,7 +190,6 @@ class CorePromise
 
         return $this->httplugResponse;
     }
-
 
     public function getException()
     {
