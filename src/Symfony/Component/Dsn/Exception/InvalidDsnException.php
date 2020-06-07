@@ -18,7 +18,7 @@ namespace Symfony\Component\Dsn\Exception;
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-class InvalidDsnException extends \InvalidArgumentException
+class InvalidDsnException extends InvalidArgumentException
 {
     private $dsn;
 
