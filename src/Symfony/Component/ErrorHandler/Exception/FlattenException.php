@@ -345,6 +345,7 @@ class FlattenException
             }
         }
 
+
         return $result;
     }
 
