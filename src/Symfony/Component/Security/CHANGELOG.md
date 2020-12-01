@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+5.3.0
+-----
+
+ * Added `SymmetricEncryptionInterface` and `AsymmetricEncryptionInterface` and a Sodium implemnetation of those interfaces in `SodiumEncryption`
+
 5.2.0
 -----
 
