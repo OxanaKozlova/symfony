@@ -9,10 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Encryption;
+namespace Symfony\Component\Encryption;
 
-use Symfony\Component\Security\Core\Exception\EncryptionException;
-use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
+use Symfony\Component\Encryption\Exception\EncryptionException;
+use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
+use Symfony\Component\Encryption\Exception\UnableToVerifySignatureException;
 
 /**
  * Asymmetric encryption uses a "key pair" ie a public key and a private key. It
@@ -35,6 +36,8 @@ interface AsymmetricEncryptionInterface
      * Don't lose your private key and make sure to keep it a secret.
      *
      * @return array{public: string, private: string}
+     *
+     * @throws EncryptionException
      */
     public function generateKeypair(): array;
 
@@ -62,7 +65,8 @@ interface AsymmetricEncryptionInterface
      * @param string|null $publicKey  Alice's public key. If a public key is provided, Bob will be sure the message comes from Alice.
      *
      * @throws EncryptionException
-     * @throws WrongEncryptionKeyException When the keys are valid but did not match the message. Either it was the wrong sender/receiver, or the message was tampered with.
+     * @throws UnableToVerifySignatureException       either it was the wrong sender/receiver, or the message was tampered with
+     * @throws SignatureVerificationRequiredException thrown when you passed null as public key but the public key is needed
      */
     public function decrypt(string $message, string $privateKey, ?string $publicKey = null): string;
 }

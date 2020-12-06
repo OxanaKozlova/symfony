@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Encryption;
+namespace Symfony\Component\Encryption;
 
-use Symfony\Component\Security\Core\Exception\EncryptionException;
-use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
+use Symfony\Component\Encryption\Exception\DecryptionException;
+use Symfony\Component\Encryption\Exception\EncryptionException;
 
 /**
  * Symmetric encryption uses the same key to encrypt and decrypt a message. The
@@ -44,8 +44,7 @@ interface SymmetricEncryptionInterface
      *
      * @param string $message encrypted version of the message
      *
-     * @throws EncryptionException
-     * @throws WrongEncryptionKeyException When the secret key in valid but did not match the message. Either it was the wrong key, or the message was tampered with.
+     * @throws DecryptionException
      */
     public function decrypt(string $message): string;
 }

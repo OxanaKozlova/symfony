@@ -9,11 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Exception;
+namespace Symfony\Component\Encryption\Exception;
 
 /**
+ * Base ExceptionInterface for the Encryption Component.
+ *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ *
+ * @experimental in 5.3
  */
-class EncryptionException extends \RuntimeException implements EncryptionExceptionInterface
+interface ExceptionInterface extends \Throwable
 {
 }

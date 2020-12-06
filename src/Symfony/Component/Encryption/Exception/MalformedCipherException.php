@@ -9,15 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Exception;
+namespace Symfony\Component\Encryption\Exception;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ *
+ * @experimental in 5.3
  */
-class MalformedCipherException extends \Exception implements EncryptionExceptionInterface
+class MalformedCipherException extends DecryptionException
 {
     public function __construct(\Throwable $previous = null)
     {
-        parent::__construct('The message you provided is not a valid cipher text.', 0, $previous);
+        parent::__construct('The message you provided is not a valid cipher text.', $previous);
     }
 }

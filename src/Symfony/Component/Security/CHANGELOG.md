@@ -1,11 +1,6 @@
 CHANGELOG
 =========
 
-5.3.0
------
-
- * Added `SymmetricEncryptionInterface` and `AsymmetricEncryptionInterface` and a Sodium and Phpseclib implemnetation of those interfaces
-
 5.2.0
 -----
 

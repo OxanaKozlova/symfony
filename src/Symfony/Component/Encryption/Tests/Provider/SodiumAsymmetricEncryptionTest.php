@@ -9,10 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Tests\Encryption;
+namespace Symfony\Component\Encryption\Tests\Encryption\Provider;
 
-use Symfony\Component\Security\Core\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Security\Core\Encryption\SodiumEncryption;
+use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
+use Symfony\Component\Encryption\Provider\SodiumEncryption;
+use Symfony\Component\Encryption\Tests\AbstractAsymmetricEncryptionTest;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
@@ -25,6 +26,6 @@ class SodiumAsymmetricEncryptionTest extends AbstractAsymmetricEncryptionTest
             $this->markTestSkipped('Sodium extension is not installed and enabled.');
         }
 
-        return new SodiumEncryption('s3cr3t');
+        return new SodiumEncryption('s3cr3t'.random_bytes(10));
     }
 }

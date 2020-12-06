@@ -9,13 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Tests\Encryption;
+namespace Symfony\Component\Encryption\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Security\Core\Encryption\SodiumEncryption;
-use Symfony\Component\Security\Core\Encryption\SymmetricEncryptionInterface;
-use Symfony\Component\Security\Core\Exception\MalformedCipherException;
-use Symfony\Component\Security\Core\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\Exception\MalformedCipherException;
+use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
@@ -31,7 +30,7 @@ abstract class AbstractSymmetricEncryptionTest extends TestCase
         $this->assertNotEquals('input', $sodium->encrypt('input'));
 
         $cipher = $sodium->encrypt($input = 'random_string');
-        $sodium = new SodiumEncryption('different_secret');
+        $sodium = $this->getSymmetricEncryption();
         $this->assertNotEquals($cipher, $sodium->encrypt($input));
     }
 

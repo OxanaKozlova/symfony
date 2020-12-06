@@ -9,12 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Exception;
+namespace Symfony\Component\Encryption\Exception;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ *
+ * @experimental in 5.3
  */
-class UnsupportedAlgorithmException extends \LogicException implements EncryptionExceptionInterface
+class UnsupportedAlgorithmException extends DecryptionException implements ExceptionInterface
 {
     public function __construct(string $algorithm, \Throwable $previous = null)
     {

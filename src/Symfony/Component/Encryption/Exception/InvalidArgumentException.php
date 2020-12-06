@@ -9,13 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Exception;
+namespace Symfony\Component\Encryption\Exception;
 
 /**
- * Base exception for encryption and decryption.
- *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ *
+ * @experimental in 5.3
  */
-interface EncryptionExceptionInterface extends ExceptionInterface
+class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface
 {
 }

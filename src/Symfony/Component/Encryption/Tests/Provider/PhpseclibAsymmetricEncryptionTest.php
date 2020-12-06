@@ -9,11 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Tests\Encryption;
+namespace Symfony\Component\Encryption\Tests\Encryption\Provider;
 
 use phpseclib\Crypt\AES;
-use Symfony\Component\Security\Core\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Security\Core\Encryption\PhpseclibEncryption;
+use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
+use Symfony\Component\Encryption\Provider\PhpseclibEncryption;
+use Symfony\Component\Encryption\Tests\AbstractAsymmetricEncryptionTest;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>

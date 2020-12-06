@@ -9,15 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Exception;
+namespace Symfony\Component\Encryption\Exception;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ *
+ * @experimental in 5.3
  */
-class WrongEncryptionKeyException extends EncryptionException implements EncryptionExceptionInterface
+class UnableToVerifySignatureException extends DecryptionException
 {
     public function __construct(\Throwable $previous = null)
     {
-        parent::__construct('The keys provided could not decrypt the message.', 0, $previous);
+        parent::__construct('The origin of the message could not be verified.', $previous);
     }
 }

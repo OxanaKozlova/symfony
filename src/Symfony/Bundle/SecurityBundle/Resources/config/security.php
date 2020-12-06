@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use phpseclib\Crypt\AES;
 use Symfony\Bundle\SecurityBundle\CacheWarmer\ExpressionCacheWarmer;
 use Symfony\Bundle\SecurityBundle\EventListener\FirewallEventBubblingListener;
 use Symfony\Bundle\SecurityBundle\EventListener\FirewallListener;
@@ -37,10 +36,6 @@ use Symfony\Component\Security\Core\Encoder\EncoderFactory;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\Security\Core\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Security\Core\Encryption\PhpseclibEncryption;
-use Symfony\Component\Security\Core\Encryption\SodiumEncryption;
-use Symfony\Component\Security\Core\Encryption\SymmetricEncryptionInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Security\Core\Security;
@@ -62,9 +57,6 @@ return static function (ContainerConfigurator $container) {
     $container->parameters()
         ->set('security.role_hierarchy.roles', [])
     ;
-
-    $sodiumInstalled = \function_exists('sodium_crypto_box_keypair');
-    $phpseclibInstalled = class_exists(AES::class);
 
     $container->services()
         ->set('security.authorization_checker', AuthorizationChecker::class)
@@ -103,17 +95,6 @@ return static function (ContainerConfigurator $container) {
                 service('security.token_storage'),
             ])
             ->tag('controller.argument_value_resolver', ['priority' => 40])
-
-        ->set('security.encryption.sodium', SodiumEncryption::class)
-            ->args([
-                '%kernel.secret%',
-            ])
-        ->set('security.encryption.phpseclib', PhpseclibEncryption::class)
-            ->args([
-                '%kernel.secret%',
-            ])
-        ->alias(SymmetricEncryptionInterface::class, $phpseclibInstalled && !$sodiumInstalled ? 'security.encryption.phpseclib' : 'security.encryption.sodium')
-        ->alias(AsymmetricEncryptionInterface::class, $phpseclibInstalled && !$sodiumInstalled ? 'security.encryption.phpseclib' : 'security.encryption.sodium')
 
         // Authentication related services
         ->set('security.authentication.trust_resolver', AuthenticationTrustResolver::class)

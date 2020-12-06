@@ -9,13 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Encryption;
+namespace Symfony\Component\Encryption\Provider;
 
-use Symfony\Component\Security\Core\Exception\EncryptionException;
-use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
-use Symfony\Component\Security\Core\Exception\MalformedCipherException;
-use Symfony\Component\Security\Core\Exception\UnsupportedAlgorithmException;
-use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
+use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
+use Symfony\Component\Encryption\Ciphertext;
+use Symfony\Component\Encryption\Exception\DecryptionException;
+use Symfony\Component\Encryption\Exception\EncryptionException;
+use Symfony\Component\Encryption\Exception\InvalidArgumentException;
+use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
+use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 
 /**
  * The secret key length should be 32 bytes, but other sizes are accepted.
@@ -51,37 +54,30 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
         $nonce = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         try {
             if (null === $publicKey) {
-                $algorithm = 'sodium_secretbox';
-                $cipher = sodium_crypto_secretbox($message, $nonce, $this->getSodiumKey($this->secret));
+                $ciphertext = sodium_crypto_secretbox($message, $nonce, $this->getSodiumKey($this->secret));
+
+                return (new Ciphertext('sodium_secretbox', $ciphertext, $nonce))->getUrlSafeRepresentation();
             } elseif (null === $privateKey) {
-                $algorithm = 'sodium_crypto_box_seal';
-                $cipher = sodium_crypto_box_seal($message, $publicKey);
+                return (new Ciphertext('sodium_crypto_box_seal', sodium_crypto_box_seal($message, $publicKey), $nonce))->getUrlSafeRepresentation();
             } elseif (null !== $publicKey && null !== $privateKey) {
-                $algorithm = 'sodium_crypto_box';
                 $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
-                $cipher = sodium_crypto_box($message, $nonce, $keypair);
+                $ciphertext = sodium_crypto_box($message, $nonce, $keypair);
+
+                return (new Ciphertext('sodium_crypto_box', $ciphertext, $nonce))->getUrlSafeRepresentation();
             } else {
                 throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
             }
         } catch (\SodiumException $exception) {
-            throw new EncryptionException(sprintf('Failed to encrypt message with algorithm "%s".', $algorithm), 0, $exception);
+            throw new EncryptionException('Failed to encrypt message.', $exception);
         }
-
-        return sprintf('%s.%s.%s', base64_encode($cipher), base64_encode($algorithm), base64_encode($nonce));
     }
 
     public function decrypt(string $message, ?string $privateKey = null, ?string $publicKey = null): string
     {
-        // Make sure the message has two periods
-        $parts = explode('.', $message);
-        if (false === $parts || 3 !== \count($parts)) {
-            throw new MalformedCipherException();
-        }
-
-        [$cipher, $algorithm, $nonce] = $parts;
-        $algorithm = base64_decode($algorithm);
-        $ciphertext = base64_decode($cipher, true);
-        $nonce = base64_decode($nonce, true);
+        $parsedMessage = Ciphertext::parse($message);
+        $algorithm = $parsedMessage->getAlgorithm();
+        $ciphertext = $parsedMessage->getCiphertext();
+        $nonce = $parsedMessage->getNonce();
 
         try {
             if ('sodium_crypto_box_seal' === $algorithm) {
@@ -89,7 +85,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
                 $output = sodium_crypto_box_seal_open($ciphertext, $keypair);
             } elseif ('sodium_crypto_box' === $algorithm) {
                 if (null === $publicKey) {
-                    throw new WrongEncryptionKeyException();
+                    throw new SignatureVerificationRequiredException();
                 }
                 $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
                 $output = sodium_crypto_box_open($ciphertext, $nonce, $keypair);
@@ -100,11 +96,11 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
                 throw new UnsupportedAlgorithmException($algorithm);
             }
         } catch (\SodiumException $exception) {
-            throw new EncryptionException(sprintf('Failed to decrypt message with algorithm "%s".', $algorithm), 0, $exception);
+            throw new DecryptionException(sprintf('Failed to decrypt message with algorithm "%s".', $algorithm), $exception);
         }
 
         if (false === $output) {
-            throw new WrongEncryptionKeyException();
+            throw new DecryptionException();
         }
 
         return $output;

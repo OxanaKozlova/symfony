@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Tests\Encryption;
+namespace Symfony\Component\Encryption\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Security\Core\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Security\Core\Exception\EncryptionException;
-use Symfony\Component\Security\Core\Exception\MalformedCipherException;
-use Symfony\Component\Security\Core\Exception\UnsupportedAlgorithmException;
-use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
+use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
+use Symfony\Component\Encryption\Exception\DecryptionException;
+use Symfony\Component\Encryption\Exception\MalformedCipherException;
+use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
+use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
@@ -75,7 +75,7 @@ abstract class AbstractAsymmetricEncryptionTest extends TestCase
 
         // Test encrypting with no private key
         $cipher = $sodium->encrypt($input = 'input', $bobPublic);
-        $this->expectException(WrongEncryptionKeyException::class);
+        $this->expectException(DecryptionException::class);
         $this->assertEquals($input, $sodium->decrypt($cipher, $bobPrivate, $alicePublic));
     }
 
@@ -87,7 +87,7 @@ abstract class AbstractAsymmetricEncryptionTest extends TestCase
 
         // Test decrypting with no public key
         $cipher = $sodium->encrypt($input = 'input', $bobPublic, $alicePrivate);
-        $this->expectException(WrongEncryptionKeyException::class);
+        $this->expectException(SignatureVerificationRequiredException::class);
         $this->assertEquals($input, $sodium->decrypt($cipher, $bobPrivate));
     }
 
@@ -113,7 +113,7 @@ abstract class AbstractAsymmetricEncryptionTest extends TestCase
         ['public' => $evePublic, 'private' => $evePrivate] = $sodium->generateKeypair();
 
         $cipher = $sodium->encrypt('input', $bobPublic, $alicePrivate);
-        $this->expectException(EncryptionException::class);
+        $this->expectException(DecryptionException::class);
         $sodium->decrypt($cipher, $bobPrivate, $evePublic);
     }
 
@@ -125,7 +125,7 @@ abstract class AbstractAsymmetricEncryptionTest extends TestCase
         ['public' => $evePublic, 'private' => $evePrivate] = $sodium->generateKeypair();
 
         $cipher = $sodium->encrypt('input', $bobPublic, $alicePrivate);
-        $this->expectException(EncryptionException::class);
+        $this->expectException(DecryptionException::class);
         $sodium->decrypt($cipher, $evePrivate, $alicePublic);
     }
 

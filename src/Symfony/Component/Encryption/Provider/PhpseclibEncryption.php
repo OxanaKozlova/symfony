@@ -9,15 +9,19 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Core\Encryption;
+namespace Symfony\Component\Encryption\Provider;
 
 use phpseclib\Crypt\AES;
 use phpseclib\Crypt\RSA;
-use Symfony\Component\Security\Core\Exception\EncryptionException;
-use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
-use Symfony\Component\Security\Core\Exception\MalformedCipherException;
-use Symfony\Component\Security\Core\Exception\UnsupportedAlgorithmException;
-use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
+use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
+use Symfony\Component\Encryption\Ciphertext;
+use Symfony\Component\Encryption\Exception\DecryptionException;
+use Symfony\Component\Encryption\Exception\EncryptionException;
+use Symfony\Component\Encryption\Exception\InvalidArgumentException;
+use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
+use Symfony\Component\Encryption\Exception\UnableToVerifySignatureException;
+use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 
 if (!class_exists(RSA::class)) {
     throw new \LogicException('You cannot use "Symfony\Component\Security\Core\Encryption\PhpseclibEncryption" as the "phpseclib/phpseclib:2.x" package is not installed. Try running "composer require phpseclib/phpseclib:^2".');
@@ -66,22 +70,22 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
                 $algorithm = 'aes';
                 $aes = new AES();
                 $aes->setKey($this->secret);
-                $cipher = $aes->encrypt($message);
+                $ciphertext = $aes->encrypt($message);
             } elseif (null === $privateKey) {
                 $algorithm = 'rsa';
                 $rsa = new RSA();
                 $rsa->loadKey($publicKey);
-                $cipher = $rsa->encrypt($message);
+                $ciphertext = $rsa->encrypt($message);
             } elseif (null !== $publicKey && null !== $privateKey) {
                 $algorithm = 'rsa_signature_pss';
                 $rsa = new RSA();
                 $rsa->loadKey($publicKey);
-                $cipher = $rsa->encrypt($message);
+                $ciphertext = $rsa->encrypt($message);
 
                 // Load private key after encryption
                 $rsa->loadKey($privateKey);
                 $rsa->setSignatureMode(RSA::SIGNATURE_PSS);
-                $nonce = $rsa->sign($cipher);
+                $nonce = $rsa->sign($ciphertext);
             } else {
                 throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
             }
@@ -91,27 +95,21 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
             restore_error_handler();
         }
 
-        return sprintf('%s.%s.%s', base64_encode($cipher), base64_encode($algorithm), base64_encode($nonce));
+        return (new Ciphertext($algorithm, $ciphertext, $nonce))->getUrlSafeRepresentation();
     }
 
     public function decrypt(string $message, ?string $privateKey = null, ?string $publicKey = null): string
     {
-        // Make sure the message has two periods
-        $parts = explode('.', $message);
-        if (false === $parts || 3 !== \count($parts)) {
-            throw new MalformedCipherException();
-        }
-
-        [$cipher, $algorithm, $nonce] = $parts;
-        $algorithm = base64_decode($algorithm);
-        $ciphertext = base64_decode($cipher, true);
-        $nonce = base64_decode($nonce, true);
+        $parsedMessage = Ciphertext::parse($message);
+        $algorithm = $parsedMessage->getAlgorithm();
+        $ciphertext = $parsedMessage->getCiphertext();
+        $nonce = $parsedMessage->getNonce();
 
         set_error_handler(__CLASS__.'::throwError');
         try {
             if ('rsa' === $algorithm) {
                 if (null !== $publicKey) {
-                    throw new WrongEncryptionKeyException();
+                    throw new UnableToVerifySignatureException();
                 }
 
                 $rsa = new RSA();
@@ -119,13 +117,13 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
                 $output = $rsa->decrypt($ciphertext);
             } elseif ('rsa_signature_pss' === $algorithm) {
                 if (null === $publicKey) {
-                    throw new WrongEncryptionKeyException();
+                    throw new SignatureVerificationRequiredException();
                 }
                 $rsa = new RSA();
                 $rsa->loadKey($publicKey);
                 $verify = $rsa->verify($ciphertext, $nonce);
                 if (!$verify) {
-                    throw new WrongEncryptionKeyException();
+                    throw new UnableToVerifySignatureException();
                 }
 
                 // Load private key after verification
@@ -139,13 +137,13 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
                 throw new UnsupportedAlgorithmException($algorithm);
             }
         } catch (\ErrorException $exception) {
-            throw new EncryptionException(sprintf('Failed to decrypt message with algorithm "%s".', $algorithm), 0, $exception);
+            throw new DecryptionException(sprintf('Failed to decrypt message with algorithm "%s".', $algorithm), $exception);
         } finally {
             restore_error_handler();
         }
 
         if (false === $output) {
-            throw new WrongEncryptionKeyException();
+            throw new DecryptionException();
         }
 
         return $output;
