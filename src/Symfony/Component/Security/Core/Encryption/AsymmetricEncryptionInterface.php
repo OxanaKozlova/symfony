@@ -24,22 +24,25 @@ use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
  * When Bob receive the message, he will decrypt it with keypair [ bob_private, alice_public ].
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
- * @experimental in 5.2
+ *
+ * @experimental in 5.3
  */
 interface AsymmetricEncryptionInterface
 {
     /**
-     * Generate new a keypair to be used with encryption. Don't loose your private
-     * key and make sure to keep it a secret.
+     * Generates new a keypair to be used with encryption.
+     *
+     * Don't lose your private key and make sure to keep it a secret.
      *
      * @return array{public: string, private: string}
      */
     public function generateKeypair(): array;
 
     /**
-     * When Alice wants to send a secret message to Bob.
+     * Get an encrypted version of the message.
      *
-     * This function encrypt the message so only Bob can see it.
+     * When Alice wants to send a secret message to Bob. This function encrypt the
+     * message so only Bob can see it.
      *
      * @param string      $message    plain text version of the message
      * @param string      $publicKey  Bob's public key
@@ -50,9 +53,9 @@ interface AsymmetricEncryptionInterface
     public function encrypt(string $message, string $publicKey, ?string $privateKey = null): string;
 
     /**
-     * When Bob gets a secret message from Alice.
+     * Get a plain text version of the encrypted message.
      *
-     * This function decrypt the message.
+     * When Bob gets a secret message from Alice. This function decrypt the message.
      *
      * @param string      $message    encrypted version of the message
      * @param string      $privateKey Bob's private key

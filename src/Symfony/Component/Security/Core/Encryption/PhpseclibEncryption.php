@@ -27,15 +27,16 @@ if (!class_exists(RSA::class)) {
  * The secret key length should be 32 bytes, but other sizes are accepted.
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
- * @experimental in 5.2
+ *
+ * @experimental in 5.3
  */
 class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEncryptionInterface
 {
+    private $secret;
+
     /**
      * @var string application secret
      */
-    private $secret;
-
     public function __construct(string $secret)
     {
         $this->secret = $secret;

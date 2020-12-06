@@ -16,7 +16,7 @@ use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
 
 /**
  * Symmetric encryption uses the same key to encrypt and decrypt a message. The
- * keys should be kept safe and should not be exposed to the public. Symmetric
+ * key should be kept safe and should not be exposed to the public. Symmetric
  * encryption should be used when you are not sending the encrypted message to
  * anyone else.
  *
@@ -25,7 +25,8 @@ use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
  * Symmetric encryption is in theory weaker than asymmetric encryption.
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
- * @experimental in 5.2
+ *
+ * @experimental in 5.3
  */
 interface SymmetricEncryptionInterface
 {
@@ -39,7 +40,7 @@ interface SymmetricEncryptionInterface
     public function encrypt(string $message): string;
 
     /**
-     * Get a plain text version of the message.
+     * Get a plain text version of the encrypted message.
      *
      * @param string $message encrypted version of the message
      *
