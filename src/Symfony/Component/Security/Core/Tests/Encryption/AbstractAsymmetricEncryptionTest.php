@@ -12,29 +12,20 @@
 namespace Symfony\Component\Security\Core\Tests\Encryption;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Security\Core\Encryption\SodiumEncryption;
+use Symfony\Component\Security\Core\Encryption\AsymmetricEncryptionInterface;
+use Symfony\Component\Security\Core\Exception\EncryptionException;
 use Symfony\Component\Security\Core\Exception\MalformedCipherException;
 use Symfony\Component\Security\Core\Exception\UnsupportedAlgorithmException;
 use Symfony\Component\Security\Core\Exception\WrongEncryptionKeyException;
 
-class SodiumEncryptionTest extends TestCase
+/**
+ * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ */
+abstract class AbstractAsymmetricEncryptionTest extends TestCase
 {
-    public function testEncryption()
-    {
-        $sodium = new SodiumEncryption('s3cr3t');
-        $cipher = $sodium->encrypt('');
-        $this->assertNotEmpty('input', $cipher);
-        $this->assertTrue(\strlen($cipher) > 10);
-        $this->assertNotEquals('input', $sodium->encrypt('input'));
-
-        $cipher = $sodium->encrypt($input = 'random_string');
-        $sodium = new SodiumEncryption('different_secret');
-        $this->assertNotEquals($cipher, $sodium->encrypt($input));
-    }
-
     public function testAsymmetricEncryption()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         ['public' => $alicePublic, 'private' => $alicePrivate] = $sodium->generateKeypair();
         ['public' => $bobPublic, 'private' => $bobPrivate] = $sodium->generateKeypair();
 
@@ -46,7 +37,7 @@ class SodiumEncryptionTest extends TestCase
 
     public function testAsymmetricEncryptionWithIdentification()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         ['public' => $alicePublic, 'private' => $alicePrivate] = $sodium->generateKeypair();
         ['public' => $bobPublic, 'private' => $bobPrivate] = $sodium->generateKeypair();
 
@@ -57,17 +48,9 @@ class SodiumEncryptionTest extends TestCase
         $this->assertNotEquals('input', $sodium->encrypt('input', $bobPublic, $alicePrivate));
     }
 
-    public function testDecryption()
-    {
-        $sodium = new SodiumEncryption('s3cr3t');
-
-        $this->assertEquals($input = '', $sodium->decrypt($sodium->encrypt($input)));
-        $this->assertEquals($input = 'foobar', $sodium->decrypt($sodium->encrypt($input)));
-    }
-
     public function testAsymmetricDecryption()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         ['public' => $alicePublic, 'private' => $alicePrivate] = $sodium->generateKeypair();
 
         $cipher = $sodium->encrypt($input = 'input', $alicePublic);
@@ -76,7 +59,7 @@ class SodiumEncryptionTest extends TestCase
 
     public function testAsymmetricDecryptionWithIdentification()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         ['public' => $alicePublic, 'private' => $alicePrivate] = $sodium->generateKeypair();
         ['public' => $bobPublic, 'private' => $bobPrivate] = $sodium->generateKeypair();
 
@@ -86,7 +69,7 @@ class SodiumEncryptionTest extends TestCase
 
     public function testAsymmetricDecryptionUnableToVerifySender()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         ['public' => $alicePublic, 'private' => $alicePrivate] = $sodium->generateKeypair();
         ['public' => $bobPublic, 'private' => $bobPrivate] = $sodium->generateKeypair();
 
@@ -98,7 +81,7 @@ class SodiumEncryptionTest extends TestCase
 
     public function testAsymmetricDecryptionIgnoreToVerifySender()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         ['public' => $alicePublic, 'private' => $alicePrivate] = $sodium->generateKeypair();
         ['public' => $bobPublic, 'private' => $bobPrivate] = $sodium->generateKeypair();
 
@@ -108,48 +91,43 @@ class SodiumEncryptionTest extends TestCase
         $this->assertEquals($input, $sodium->decrypt($cipher, $bobPrivate));
     }
 
-    public function testDecryptionThrowsOnMalformedCipher()
-    {
-        $sodium = new SodiumEncryption('s3cr3t');
-        $this->expectException(MalformedCipherException::class);
-        $sodium->decrypt('foo');
-    }
-
     public function testAsymmetricDecryptionThrowsOnMalformedCipher()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         $this->expectException(MalformedCipherException::class);
         $sodium->decrypt('foo', 'private', 'public');
     }
 
     public function testDecryptionThrowsOnUnsupportedAlgorithm()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         $this->expectException(UnsupportedAlgorithmException::class);
-        $sodium->decrypt('foo.bar.baz');
+        $sodium->decrypt('foo.bar.baz', 'private', 'public');
     }
 
     public function testAsymmetricDecryptionThrowsExceptionOnWrongPublicKey()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         ['public' => $alicePublic, 'private' => $alicePrivate] = $sodium->generateKeypair();
         ['public' => $bobPublic, 'private' => $bobPrivate] = $sodium->generateKeypair();
         ['public' => $evePublic, 'private' => $evePrivate] = $sodium->generateKeypair();
 
         $cipher = $sodium->encrypt('input', $bobPublic, $alicePrivate);
-        $this->expectException(WrongEncryptionKeyException::class);
+        $this->expectException(EncryptionException::class);
         $sodium->decrypt($cipher, $bobPrivate, $evePublic);
     }
 
     public function testAsymmetricDecryptionThrowsExceptionOnWrongPrivateKey()
     {
-        $sodium = new SodiumEncryption('s3cr3t');
+        $sodium = $this->getAsymmetricEncryption();
         ['public' => $alicePublic, 'private' => $alicePrivate] = $sodium->generateKeypair();
         ['public' => $bobPublic, 'private' => $bobPrivate] = $sodium->generateKeypair();
         ['public' => $evePublic, 'private' => $evePrivate] = $sodium->generateKeypair();
 
         $cipher = $sodium->encrypt('input', $bobPublic, $alicePrivate);
-        $this->expectException(WrongEncryptionKeyException::class);
+        $this->expectException(EncryptionException::class);
         $sodium->decrypt($cipher, $evePrivate, $alicePublic);
     }
+
+    abstract protected function getAsymmetricEncryption(): AsymmetricEncryptionInterface;
 }

@@ -14,7 +14,7 @@ namespace Symfony\Component\Security\Core\Exception;
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-class WrongEncryptionKeyException extends \Exception implements EncryptionExceptionInterface
+class WrongEncryptionKeyException extends EncryptionException implements EncryptionExceptionInterface
 {
     public function __construct(\Throwable $previous = null)
     {
