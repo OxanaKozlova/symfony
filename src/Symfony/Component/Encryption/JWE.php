@@ -53,6 +53,7 @@ class JWE
         [$header, $cek, $initializationVector, $ciphertext, $authenticationTag] = $parts;
         $header = json_decode(self::base64UrlDecode($header), true);
         $cek = self::base64UrlDecode($cek);
+        $initializationVector = self::base64UrlDecode($initializationVector);
         $ciphertext = self::base64UrlDecode($ciphertext);
         $authenticationTag = self::base64UrlDecode($authenticationTag);
 
@@ -60,11 +61,11 @@ class JWE
             throw new MalformedCipherException();
         }
 
-        if (!is_array($header) || !array_key_exists('alg', $header)) {
+        if (!is_array($header) || !array_key_exists('enc', $header)) {
             throw new MalformedCipherException();
         }
 
-        return new self($header['alg'], $ciphertext, $cek);
+        return new self($header['enc'], $ciphertext, $initializationVector);
     }
 
     /**
@@ -78,11 +79,12 @@ class JWE
     public function getString(): string
     {
         $header = self::base64UrlEncode(json_encode([
-            'alg' => $this->algorithm,
-            'enc' => 'none', // How we encode the CEK/nonce
+            'alg' => 'none', // he algorithm to encrypt the CEK.
+            'enc' => $this->algorithm, // The algorithm to encrypt the payload.
+            'cty' => 'plaintext',
         ]));
-        $cek = self::base64UrlEncode($this->nonce);
-        $initializationVector = self::base64UrlEncode(random_bytes(128));
+        $cek = self::base64UrlEncode(random_bytes(32));
+        $initializationVector = self::base64UrlEncode($this->nonce);
 
         return sprintf('%s.%s.%s.%s.%s', $header, $cek, $initializationVector, self::base64UrlEncode($this->ciphertext), self::base64UrlEncode(md5($this->ciphertext)));
     }

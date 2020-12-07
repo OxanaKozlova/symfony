@@ -90,7 +90,7 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
                 throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
             }
         } catch (\ErrorException $exception) {
-            throw new EncryptionException(sprintf('Failed to encrypt message with algorithm "%s".', $algorithm), 0, $exception);
+            throw new EncryptionException(sprintf('Failed to encrypt message with algorithm "%s".', $algorithm), $exception);
         } finally {
             restore_error_handler();
         }
