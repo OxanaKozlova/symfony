@@ -235,7 +235,7 @@ class JWE
         $decodedContent = base64_decode(strtr($data, '-_', '+/'), true);
 
         if (!\is_string($decodedContent)) {
-            throw new MalformedCipherException('Could not base64 decode the content');
+            throw new MalformedCipherException('Could not base64 decode the content.');
         }
 
         return $decodedContent;
