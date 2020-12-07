@@ -145,8 +145,8 @@ class JWE
     public function getString(): string
     {
         $headers = array_merge($this->headers, [
-            'alg' => $this->algorithm ?? 'none', // he algorithm to encrypt the CEK.
-            'enc' => $this->encryptionAlgorithm, // The algorithm to encrypt the payload.
+            'alg' => $this->algorithm,
+            'enc' => $this->encryptionAlgorithm,
             'cty' => 'plaintext',
             'com.symfony.authentication_tag' => 'sha256',
         ]);
@@ -160,7 +160,7 @@ class JWE
 
         return sprintf('%s.%s.%s.%s.%s',
             $encodedHeader,
-            self::base64UrlEncode($this->cek ?? 'none'),
+            self::base64UrlEncode($this->cek),
             self::base64UrlEncode($this->initializationVector),
             self::base64UrlEncode($ciphertext),
             self::base64UrlEncode($hash)

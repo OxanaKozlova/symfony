@@ -84,7 +84,7 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
             };
 
             if (null === $publicKey && null === $privateKey) {
-                $aes = new AES(); // could use AES::MODE_CBC
+                $aes = new AES();
                 $aes->setPassword($this->secret);
                 $aes->setIV($nonce = Random::string($aes->getBlockLength() >> 3));
                 $headers['com.symfony.extra_nonce'] = base64_encode($nonce);
@@ -144,7 +144,6 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
                 }
 
                 $rsa->loadKey($privateKey);
-                // $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
                 $cek = $rsa->decrypt($encryptedCek);
             } else {
                 throw new UnsupportedAlgorithmException($algorithm);
@@ -180,14 +179,5 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
     public static function throwError($type, $message, $file, $line)
     {
         throw new \ErrorException($message, 0, $type, $file, $line);
-    }
-
-    private function symmetricEncryption(string $message, string $nonce, string $secret): string
-    {
-        $aes = new AES();
-        $aes->setKey($secret);
-        $aes->setIV($nonce);
-
-        return $aes->encrypt($message);
     }
 }

@@ -158,12 +158,4 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
 
         return $secret;
     }
-
-    /**
-     * @throws \SodiumException
-     */
-    private function symmetricEncryption(string $message, string $nonce, string $secret): string
-    {
-        return sodium_crypto_secretbox($message, $nonce, $this->getSodiumKey($secret));
-    }
 }
