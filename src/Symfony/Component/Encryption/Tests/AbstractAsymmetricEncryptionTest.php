@@ -17,6 +17,7 @@ use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\MalformedCipherException;
 use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\JWE;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
@@ -102,7 +103,7 @@ abstract class AbstractAsymmetricEncryptionTest extends TestCase
     {
         $sodium = $this->getAsymmetricEncryption();
         $this->expectException(UnsupportedAlgorithmException::class);
-        $sodium->decrypt('foo.bar.baz', 'private', 'public');
+        $sodium->decrypt((new JWE('foo', 'xx', 'yy'))->getString(), 'private', 'public');
     }
 
     public function testAsymmetricDecryptionThrowsExceptionOnWrongPublicKey()

@@ -14,6 +14,7 @@ namespace Symfony\Component\Encryption\Tests;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Encryption\Exception\MalformedCipherException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\JWE;
 use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 
 /**
@@ -53,7 +54,7 @@ abstract class AbstractSymmetricEncryptionTest extends TestCase
     {
         $sodium = $this->getSymmetricEncryption();
         $this->expectException(UnsupportedAlgorithmException::class);
-        $sodium->decrypt('foo.bar.baz');
+        $sodium->decrypt((new JWE('foo', 'xx', 'yy'))->getString());
     }
 
     abstract protected function getSymmetricEncryption(): SymmetricEncryptionInterface;

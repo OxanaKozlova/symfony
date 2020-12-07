@@ -12,7 +12,7 @@
 namespace Symfony\Component\Encryption\Provider;
 
 use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Encryption\Ciphertext;
+use Symfony\Component\Encryption\JWE;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
 use Symfony\Component\Encryption\Exception\InvalidArgumentException;
@@ -56,14 +56,14 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
             if (null === $publicKey) {
                 $ciphertext = sodium_crypto_secretbox($message, $nonce, $this->getSodiumKey($this->secret));
 
-                return (new Ciphertext('sodium_secretbox', $ciphertext, $nonce))->getUrlSafeRepresentation();
+                return (new JWE('sodium_secretbox', $ciphertext, $nonce))->getString();
             } elseif (null === $privateKey) {
-                return (new Ciphertext('sodium_crypto_box_seal', sodium_crypto_box_seal($message, $publicKey), $nonce))->getUrlSafeRepresentation();
+                return (new JWE('sodium_crypto_box_seal', sodium_crypto_box_seal($message, $publicKey), $nonce))->getString();
             } elseif (null !== $publicKey && null !== $privateKey) {
                 $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
                 $ciphertext = sodium_crypto_box($message, $nonce, $keypair);
 
-                return (new Ciphertext('sodium_crypto_box', $ciphertext, $nonce))->getUrlSafeRepresentation();
+                return (new JWE('sodium_crypto_box', $ciphertext, $nonce))->getString();
             } else {
                 throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
             }
@@ -74,7 +74,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
 
     public function decrypt(string $message, ?string $privateKey = null, ?string $publicKey = null): string
     {
-        $parsedMessage = Ciphertext::parse($message);
+        $parsedMessage = JWE::parse($message);
         $algorithm = $parsedMessage->getAlgorithm();
         $ciphertext = $parsedMessage->getCiphertext();
         $nonce = $parsedMessage->getNonce();

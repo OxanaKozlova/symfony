@@ -18,8 +18,8 @@ namespace Symfony\Component\Encryption\Exception;
  */
 class MalformedCipherException extends DecryptionException
 {
-    public function __construct(\Throwable $previous = null)
+    public function __construct($message = null, \Throwable $previous = null)
     {
-        parent::__construct('The message you provided is not a valid cipher text.', $previous);
+        parent::__construct($message ?? 'The message you provided is not a valid cipher text.', $previous);
     }
 }

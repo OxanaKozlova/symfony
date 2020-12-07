@@ -14,7 +14,7 @@ namespace Symfony\Component\Encryption\Provider;
 use phpseclib\Crypt\AES;
 use phpseclib\Crypt\RSA;
 use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Encryption\Ciphertext;
+use Symfony\Component\Encryption\JWE;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
 use Symfony\Component\Encryption\Exception\InvalidArgumentException;
@@ -95,12 +95,12 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
             restore_error_handler();
         }
 
-        return (new Ciphertext($algorithm, $ciphertext, $nonce))->getUrlSafeRepresentation();
+        return (new JWE($algorithm, $ciphertext, $nonce))->getString();
     }
 
     public function decrypt(string $message, ?string $privateKey = null, ?string $publicKey = null): string
     {
-        $parsedMessage = Ciphertext::parse($message);
+        $parsedMessage = JWE::parse($message);
         $algorithm = $parsedMessage->getAlgorithm();
         $ciphertext = $parsedMessage->getCiphertext();
         $nonce = $parsedMessage->getNonce();
