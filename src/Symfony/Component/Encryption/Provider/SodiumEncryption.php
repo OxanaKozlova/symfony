@@ -51,22 +51,51 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
 
     public function encrypt(string $message, ?string $publicKey = null, ?string $privateKey = null): string
     {
-        $nonce = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        if (null === $publicKey && null !== $privateKey) {
+            throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
+        }
+
         try {
-            if (null === $publicKey) {
-                $ciphertext = sodium_crypto_secretbox($message, $nonce, $this->getSodiumKey($this->secret));
-
-                return (new JWE('sodium_secretbox', $ciphertext, $nonce))->getString();
-            } elseif (null === $privateKey) {
-                return (new JWE('sodium_crypto_box_seal', sodium_crypto_box_seal($message, $publicKey), $nonce))->getString();
-            } elseif (null !== $publicKey && null !== $privateKey) {
-                $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
-                $ciphertext = sodium_crypto_box($message, $nonce, $keypair);
-
-                return (new JWE('sodium_crypto_box', $ciphertext, $nonce))->getString();
+            // If there is hardware support
+            if (sodium_crypto_aead_aes256gcm_is_available()) {
+                $encAlgorithm = 'A256GCM';
+                $cek = sodium_crypto_aead_aes256gcm_keygen();
+                $initializationVector = random_bytes(\SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
+                $ciphertext = function ($aad) use ($message, $initializationVector, $cek) {
+                    return sodium_crypto_aead_aes256gcm_encrypt($message, $aad, $initializationVector, $cek);
+                };
             } else {
-                throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
+                // Fallback to less secure
+                $encAlgorithm = 'sodium_secretbox';
+                $cek = sodium_crypto_secretbox_keygen();
+                $initializationVector = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+                $ciphertext = function ($aad) use ($message, $initializationVector, $cek) {
+                    return sodium_crypto_secretbox($message, $initializationVector.$aad, $this->getSodiumKey($cek));
+                };
             }
+            $headers = [];
+
+            // If symmetric
+            if (null === $publicKey && null === $privateKey) {
+                $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+                $headers['com.symfony.extra_nonce']=sodium_bin2base64($nonce, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+                $encryptedCek = sodium_crypto_secretbox($cek, $nonce, $this->getSodiumKey($this->secret));
+
+                return JWE::create('sodium_secretbox', $encryptedCek, $encAlgorithm, $ciphertext, $initializationVector, $headers)->getString();
+            }
+
+            // Assert: Asymmetric
+            if (null == $privateKey) {
+                $algorithm = 'sodium_crypto_box_seal';
+                $encryptedCek = sodium_crypto_box_seal($cek, $publicKey);
+            } else {
+                $algorithm = 'sodium_crypto_box';
+                $nonce = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+                $encryptedCek = sodium_crypto_box($cek, $nonce, sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey));
+                $headers['com.symfony.extra_nonce']=sodium_bin2base64($nonce, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+            }
+
+            return JWE::create($algorithm, $encryptedCek, $encAlgorithm, $ciphertext, $initializationVector, $headers)->getString();
         } catch (\SodiumException $exception) {
             throw new EncryptionException('Failed to encrypt message.', $exception);
         }
@@ -74,24 +103,35 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
 
     public function decrypt(string $message, ?string $privateKey = null, ?string $publicKey = null): string
     {
-        $parsedMessage = JWE::parse($message);
-        $algorithm = $parsedMessage->getAlgorithm();
-        $ciphertext = $parsedMessage->getCiphertext();
-        $nonce = $parsedMessage->getNonce();
+        $jwe = JWE::parse($message);
+        $algorithm = $jwe->getAlgorithm();
+        $encryptedCek = $jwe->getEncryptedCek();
 
         try {
             if ('sodium_crypto_box_seal' === $algorithm) {
                 $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey ?? sodium_crypto_box_publickey_from_secretkey($privateKey));
-                $output = sodium_crypto_box_seal_open($ciphertext, $keypair);
+                $cek = sodium_crypto_box_seal_open($encryptedCek, $keypair);
             } elseif ('sodium_crypto_box' === $algorithm) {
                 if (null === $publicKey) {
                     throw new SignatureVerificationRequiredException();
                 }
                 $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
-                $output = sodium_crypto_box_open($ciphertext, $nonce, $keypair);
+                $cek = sodium_crypto_box_open($encryptedCek, sodium_base642bin($jwe->getHeader('com.symfony.extra_nonce'), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), $keypair);
             } elseif ('sodium_secretbox' === $algorithm) {
                 $key = $this->getSodiumKey($this->secret);
-                $output = sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
+                $cek = sodium_crypto_secretbox_open($encryptedCek, sodium_base642bin($jwe->getHeader('com.symfony.extra_nonce'), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), $key);
+            } else {
+                throw new UnsupportedAlgorithmException($algorithm);
+            }
+
+            // Let's decrypt the ciphertext using cek
+            $encAlgorithm = $jwe->getEncryptionAlgorithm();
+            $ciphertext = $jwe->getCiphertext();
+
+            if ('A256GCM' === $encAlgorithm) {
+                $output = sodium_crypto_aead_aes256gcm_decrypt($ciphertext, $jwe->getAdditionalAuthenticationData(), $jwe->getInitializationVector(), $cek);
+            } elseif ('sodium_secretbox' === $encAlgorithm) {
+                $output = sodium_crypto_secretbox_open($ciphertext, $jwe->getInitializationVector().$jwe->getAdditionalAuthenticationData(), $this->getSodiumKey($cek));
             } else {
                 throw new UnsupportedAlgorithmException($algorithm);
             }
@@ -117,5 +157,13 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
         }
 
         return $secret;
+    }
+
+    /**
+     * @throws \SodiumException
+     */
+    private function symmetricEncryption(string $message, string $nonce, string $secret): string
+    {
+        return sodium_crypto_secretbox($message, $nonce, $this->getSodiumKey($secret));
     }
 }

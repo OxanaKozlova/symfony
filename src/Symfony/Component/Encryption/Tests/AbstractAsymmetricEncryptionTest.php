@@ -103,7 +103,7 @@ abstract class AbstractAsymmetricEncryptionTest extends TestCase
     {
         $sodium = $this->getAsymmetricEncryption();
         $this->expectException(UnsupportedAlgorithmException::class);
-        $sodium->decrypt((new JWE('foo', 'xx', 'yy'))->getString(), 'private', 'public');
+        $sodium->decrypt(JWE::create('foo', 'xx', 'yy', function($x) {return $x;}, 'bix')->getString(), 'private', 'public');
     }
 
     public function testAsymmetricDecryptionThrowsExceptionOnWrongPublicKey()

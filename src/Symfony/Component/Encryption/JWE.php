@@ -12,10 +12,11 @@
 namespace Symfony\Component\Encryption;
 
 use Lcobucci\JWT\Encoding\CannotDecodeContent;
+use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\MalformedCipherException;
 
 /**
- * A JSON Web Encryption representation of the encrypted message.
+ * A JSON Web Encryption (RFC 7516) representation of the encrypted message.
  *
  * This class is responsible over the payload API.
  *
@@ -27,15 +28,65 @@ use Symfony\Component\Encryption\Exception\MalformedCipherException;
  */
 class JWE
 {
+    /**
+     * @var string algorithm for the asymmetric algorithm. Ie, for the symmetric nonce.
+     */
     private $algorithm;
-    private $ciphertext;
-    private $nonce;
 
-    public function __construct(string $algorithm, string $ciphertext, string $nonce)
+    /**
+     * @var string algorithm for the symmetric algorithm. Ie, for the payload.
+     */
+    private $encryptionAlgorithm;
+
+    /**
+     * @var callable to get the encoded payload. Only available when creating a JWE
+     */
+    private $cipher;
+
+    /**
+     * @var string|null the encoded payload. Only available after parsing
+     */
+    private $ciphertext;
+
+    /**
+     * @var string the key that is used for decrypting the cipher text. This key
+     * must be encrypted with $algorithm.
+     */
+    private $cek;
+
+    /**
+     * @var string Additional authentication data;
+     */
+    private $aad;
+
+    /**
+     * @var string nonce for the symmetric algorithm. Ie, for the payload.
+     */
+    private $initializationVector;
+
+    /**
+     * @var array additional headers
+     */
+    private $headers = [];
+
+    private function __construct()
     {
-        $this->algorithm = $algorithm;
-        $this->ciphertext = $ciphertext;
-        $this->nonce = $nonce;
+    }
+
+    /**
+     * @param callable $cipher expects some additional data as first parameter to compute the ciphertext
+     */
+    public static function create(string $algorithm, string $cek, string $encAlgorithm, callable $cipher, string $initializationVector, array $headers = []): self
+    {
+        $jwe = new self();
+        $jwe->algorithm = $algorithm;
+        $jwe->cek = $cek;
+        $jwe->encryptionAlgorithm = $encAlgorithm;
+        $jwe->cipher = $cipher;
+        $jwe->initializationVector = $initializationVector;
+        $jwe->headers = $headers;
+
+        return $jwe;
     }
 
     /**
@@ -50,22 +101,38 @@ class JWE
             throw new MalformedCipherException();
         }
 
-        [$header, $cek, $initializationVector, $ciphertext, $authenticationTag] = $parts;
-        $header = json_decode(self::base64UrlDecode($header), true);
-        $cek = self::base64UrlDecode($cek);
+        [$headers, $cek, $initializationVector, $ciphertext, $authenticationTag] = $parts;
+
         $initializationVector = self::base64UrlDecode($initializationVector);
         $ciphertext = self::base64UrlDecode($ciphertext);
         $authenticationTag = self::base64UrlDecode($authenticationTag);
 
-        if (md5($ciphertext) !== $authenticationTag) {
+        // Check if Authentication Tag is valid
+        $aad = self::computeAdditionalAuthenticationData($headers);
+        $hash = hash('sha256', $aad.$initializationVector.$ciphertext);
+        if (!hash_equals($hash, $authenticationTag)) {
             throw new MalformedCipherException();
         }
 
-        if (!is_array($header) || !array_key_exists('enc', $header)) {
+        $headers= json_decode(self::base64UrlDecode($headers), true);
+        $cek = self::base64UrlDecode($cek);
+
+        if (!is_array($headers) || !array_key_exists('enc', $headers) || !array_key_exists('alg', $headers)) {
             throw new MalformedCipherException();
         }
 
-        return new self($header['enc'], $ciphertext, $initializationVector);
+        $jwt = new self();
+        $jwt->algorithm = $headers['alg'];
+        unset($headers['alg']);
+        $jwt->encryptionAlgorithm = $headers['enc'];
+        unset($headers['enc']);
+        $jwt->headers = $headers;
+        $jwt->initializationVector = $initializationVector;
+        $jwt->ciphertext = $ciphertext;
+        $jwt->cek = $cek;
+        $jwt->aad = $aad;
+
+        return $jwt;
     }
 
     /**
@@ -78,15 +145,45 @@ class JWE
 
     public function getString(): string
     {
-        $header = self::base64UrlEncode(json_encode([
-            'alg' => 'none', // he algorithm to encrypt the CEK.
-            'enc' => $this->algorithm, // The algorithm to encrypt the payload.
+        $headers = array_merge($this->headers, [
+            'alg' => $this->algorithm ?? 'none', // he algorithm to encrypt the CEK.
+            'enc' => $this->encryptionAlgorithm, // The algorithm to encrypt the payload.
             'cty' => 'plaintext',
-        ]));
-        $cek = self::base64UrlEncode(random_bytes(32));
-        $initializationVector = self::base64UrlEncode($this->nonce);
+            'com.symfony.authentication_tag' => 'sha256',
+        ]);
 
-        return sprintf('%s.%s.%s.%s.%s', $header, $cek, $initializationVector, self::base64UrlEncode($this->ciphertext), self::base64UrlEncode(md5($this->ciphertext)));
+        $encodedHeader = self::base64UrlEncode(json_encode($headers));
+        $aad = self::computeAdditionalAuthenticationData($encodedHeader);
+        $cipher = $this->cipher;
+        $ciphertext = $cipher($aad);
+
+        $hash = hash('sha256', $aad.$this->initializationVector.$ciphertext);
+
+        return sprintf('%s.%s.%s.%s.%s',
+            $encodedHeader,
+            self::base64UrlEncode($this->cek ?? 'none'),
+            self::base64UrlEncode($this->initializationVector),
+            self::base64UrlEncode($ciphertext),
+            self::base64UrlEncode($hash)
+        );
+    }
+
+    /**
+     * This will compute a hash over the encoded headers.
+     */
+    private static function computeAdditionalAuthenticationData(string $input): string
+    {
+        $ascii = [];
+        for ($i = 0; $i < strlen($input); $i++) {
+            $ascii[] = ord($input[$i]);
+        }
+
+        return json_encode($ascii);
+    }
+
+    public function getAdditionalAuthenticationData(): string
+    {
+        return $this->aad;
     }
 
     public function getAlgorithm(): string
@@ -99,10 +196,31 @@ class JWE
         return $this->ciphertext;
     }
 
-    public function getNonce(): string
+    public function getHeader(string $name): string
     {
-        return $this->nonce;
+        if (array_key_exists($name, $this->headers)) {
+            return $this->headers[$name];
+        }
+
+        throw new DecryptionException(sprintf('The expected header "%s" is not found', $name));
     }
+
+    public function getEncryptedCek(): ?string
+    {
+        return $this->cek;
+    }
+
+    public function getEncryptionAlgorithm(): string
+    {
+        return $this->encryptionAlgorithm;
+    }
+
+    public function getInitializationVector(): string
+    {
+        return $this->initializationVector;
+    }
+
+
 
     private static function base64UrlEncode(string $data): string
     {

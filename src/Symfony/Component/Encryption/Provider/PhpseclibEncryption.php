@@ -12,6 +12,7 @@
 namespace Symfony\Component\Encryption\Provider;
 
 use phpseclib\Crypt\AES;
+use phpseclib\Crypt\Random;
 use phpseclib\Crypt\RSA;
 use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
 use Symfony\Component\Encryption\JWE;
@@ -63,39 +64,41 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
 
     public function encrypt(string $message, ?string $publicKey = null, ?string $privateKey = null): string
     {
-        set_error_handler(__CLASS__.'::throwError');
-        $nonce = random_bytes(16);
-        try {
-            if (null === $publicKey) {
-                $algorithm = 'aes';
-                $aes = new AES();
-                $aes->setKey($this->secret);
-                $ciphertext = $aes->encrypt($message);
-            } elseif (null === $privateKey) {
-                $algorithm = 'rsa';
-                $rsa = new RSA();
-                $rsa->loadKey($publicKey);
-                $ciphertext = $rsa->encrypt($message);
-            } elseif (null !== $publicKey && null !== $privateKey) {
-                $algorithm = 'rsa_signature_pss';
-                $rsa = new RSA();
-                $rsa->loadKey($publicKey);
-                $ciphertext = $rsa->encrypt($message);
+        if (null === $publicKey && null !== $privateKey) {
+            throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
+        }
 
+        set_error_handler(__CLASS__.'::throwError');
+        $nonce = random_bytes(12); // 96 bits
+        try {
+            if (null === $publicKey && null === $privateKey) {
+                $ciphertext = $this->symmetricEncryption($message, $nonce, $this->secret);
+
+                return JWE::createWithOnlySymmetricEncryption('A128CBC-HS256', $ciphertext, $nonce)->getString();
+            }
+
+            // Asymmetric encryption
+            $cek = Random::string(32);
+            $rsa = new RSA();
+            $rsa->loadKey($publicKey);
+            $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
+            $encryptedCek = $rsa->encrypt($cek);
+            $ciphertext = $this->symmetricEncryption($message, $nonce, $cek);
+
+            $headers = [];
+            if ($privateKey !== null) {
                 // Load private key after encryption
                 $rsa->loadKey($privateKey);
                 $rsa->setSignatureMode(RSA::SIGNATURE_PSS);
-                $nonce = $rsa->sign($ciphertext);
-            } else {
-                throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
+                $headers['com.symfony.signature'] = $rsa->sign($ciphertext);
             }
+
+            return JWE::create('RSA-OAEP', $encryptedCek, 'A128CBC-HS256', $ciphertext, $nonce, $headers)->getString();
         } catch (\ErrorException $exception) {
-            throw new EncryptionException(sprintf('Failed to encrypt message with algorithm "%s".', $algorithm), $exception);
+            throw new EncryptionException(null, $exception);
         } finally {
             restore_error_handler();
         }
-
-        return (new JWE($algorithm, $ciphertext, $nonce))->getString();
     }
 
     public function decrypt(string $message, ?string $privateKey = null, ?string $publicKey = null): string
@@ -155,5 +158,14 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
     public static function throwError($type, $message, $file, $line)
     {
         throw new \ErrorException($message, 0, $type, $file, $line);
+    }
+
+    private function symmetricEncryption(string $message, string $nonce, string $secret): string
+    {
+        $aes = new AES();
+        $aes->setKey($secret);
+        $aes->setIV($nonce);
+
+        return $aes->encrypt($message);
     }
 }

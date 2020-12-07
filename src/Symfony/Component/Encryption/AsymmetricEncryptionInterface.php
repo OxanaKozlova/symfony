@@ -51,6 +51,8 @@ interface AsymmetricEncryptionInterface
      * @param string      $publicKey  Bob's public key
      * @param string|null $privateKey Alice's private key. If a private key is provided, Bob is forced to verify that the message comes from Alice.
      *
+     * @return string The output will be formatted according to JWE (RFC 7516).
+     *
      * @throws EncryptionException
      */
     public function encrypt(string $message, string $publicKey, ?string $privateKey = null): string;
