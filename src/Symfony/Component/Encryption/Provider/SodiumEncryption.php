@@ -12,12 +12,12 @@
 namespace Symfony\Component\Encryption\Provider;
 
 use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Encryption\JWE;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
 use Symfony\Component\Encryption\Exception\InvalidArgumentException;
 use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\JWE;
 use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 
 /**
@@ -78,7 +78,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
             // If symmetric
             if (null === $publicKey && null === $privateKey) {
                 $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
-                $headers['com.symfony.extra_nonce']=sodium_bin2base64($nonce, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+                $headers['com.symfony.extra_nonce'] = sodium_bin2base64($nonce, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
                 $encryptedCek = sodium_crypto_secretbox($cek, $nonce, $this->getSodiumKey($this->secret));
 
                 return JWE::create('sodium_secretbox', $encryptedCek, $encAlgorithm, $cipher, $initializationVector, $headers)->getString();
@@ -92,7 +92,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
                 $algorithm = 'sodium_crypto_box';
                 $nonce = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
                 $encryptedCek = sodium_crypto_box($cek, $nonce, sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey));
-                $headers['com.symfony.extra_nonce']=sodium_bin2base64($nonce, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+                $headers['com.symfony.extra_nonce'] = sodium_bin2base64($nonce, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
             }
 
             return JWE::create($algorithm, $encryptedCek, $encAlgorithm, $cipher, $initializationVector, $headers)->getString();

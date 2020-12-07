@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Encryption;
 
-use Lcobucci\JWT\Encoding\CannotDecodeContent;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\MalformedCipherException;
 
@@ -50,7 +49,7 @@ class JWE
 
     /**
      * @var string the key that is used for decrypting the cipher text. This key
-     * must be encrypted with $algorithm.
+     *             must be encrypted with $algorithm.
      */
     private $cek;
 
@@ -114,10 +113,10 @@ class JWE
             throw new MalformedCipherException();
         }
 
-        $headers= json_decode(self::base64UrlDecode($headers), true);
+        $headers = json_decode(self::base64UrlDecode($headers), true);
         $cek = self::base64UrlDecode($cek);
 
-        if (!is_array($headers) || !array_key_exists('enc', $headers) || !array_key_exists('alg', $headers)) {
+        if (!\is_array($headers) || !\array_key_exists('enc', $headers) || !\array_key_exists('alg', $headers)) {
             throw new MalformedCipherException();
         }
 
@@ -174,8 +173,8 @@ class JWE
     private static function computeAdditionalAuthenticationData(string $input): string
     {
         $ascii = [];
-        for ($i = 0; $i < strlen($input); $i++) {
-            $ascii[] = ord($input[$i]);
+        for ($i = 0; $i < \strlen($input); ++$i) {
+            $ascii[] = \ord($input[$i]);
         }
 
         return json_encode($ascii);
@@ -196,11 +195,9 @@ class JWE
         return $this->ciphertext;
     }
 
-
-
     public function hasHeader(string $name): bool
     {
-        return array_key_exists($name, $this->headers);
+        return \array_key_exists($name, $this->headers);
     }
 
     public function getHeader(string $name): string
@@ -209,7 +206,7 @@ class JWE
             return $this->headers[$name];
         }
 
-        throw new DecryptionException(sprintf('The expected header "%s" is not found', $name));
+        throw new DecryptionException(sprintf('The expected header "%s" is not found.', $name));
     }
 
     public function getEncryptedCek(): ?string
@@ -227,8 +224,6 @@ class JWE
         return $this->initializationVector;
     }
 
-
-
     private static function base64UrlEncode(string $data): string
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -239,7 +234,7 @@ class JWE
         // Padding isn't added back because it isn't strictly necessary for decoding with PHP
         $decodedContent = base64_decode(strtr($data, '-_', '+/'), true);
 
-        if (! is_string($decodedContent)) {
+        if (!\is_string($decodedContent)) {
             throw new MalformedCipherException('Could not base64 decode the content');
         }
 

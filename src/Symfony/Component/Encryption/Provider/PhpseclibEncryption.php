@@ -15,13 +15,13 @@ use phpseclib\Crypt\AES;
 use phpseclib\Crypt\Random;
 use phpseclib\Crypt\RSA;
 use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Encryption\JWE;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
 use Symfony\Component\Encryption\Exception\InvalidArgumentException;
 use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnableToVerifySignatureException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\JWE;
 use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 
 if (!class_exists(RSA::class)) {
@@ -79,6 +79,7 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
             $initializationVector = Random::string($aes->getBlockLength() >> 3);
             $cipher = function ($aad) use ($message, $aes, $initializationVector) {
                 $aes->setIV($initializationVector.$aad);
+
                 return $aes->encrypt($message);
             };
 
@@ -86,7 +87,7 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
                 $aes = new AES(); // could use AES::MODE_CBC
                 $aes->setPassword($this->secret);
                 $aes->setIV($nonce = Random::string($aes->getBlockLength() >> 3));
-                $headers['com.symfony.extra_nonce']=base64_encode($nonce);
+                $headers['com.symfony.extra_nonce'] = base64_encode($nonce);
                 $encryptedCek = $aes->encrypt($cek);
 
                 return JWE::create('RSAES-PKCS1-v1_5', $encryptedCek, $encAlgorithm, $cipher, $initializationVector, $headers)->getString();
@@ -98,7 +99,7 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
             $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
             $encryptedCek = $rsa->encrypt($cek);
 
-            if ($privateKey !== null) {
+            if (null !== $privateKey) {
                 // Load private key after encryption
                 $rsa->loadKey($privateKey);
                 $rsa->setSignatureMode(RSA::SIGNATURE_PSS);
@@ -122,7 +123,7 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
         set_error_handler(__CLASS__.'::throwError');
         try {
             if ('RSAES-PKCS1-v1_5' === $algorithm) {
-                 $aes = new AES();
+                $aes = new AES();
                 $aes->setPassword($this->secret);
                 $aes->setIV(base64_decode($jwe->getHeader('com.symfony.extra_nonce')));
                 $cek = $aes->decrypt($encryptedCek);
@@ -138,7 +139,7 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
                     if (!$verify) {
                         throw new UnableToVerifySignatureException();
                     }
-                } elseif ($publicKey !== null) {
+                } elseif (null !== $publicKey) {
                     throw new UnableToVerifySignatureException();
                 }
 
@@ -152,11 +153,11 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
             // Let's decrypt the ciphertext using cek
             $encAlgorithm = $jwe->getEncryptionAlgorithm();
             $ciphertext = $jwe->getCiphertext();
-            if ($encAlgorithm === 'A128CBC-HS256') {
+            if ('A128CBC-HS256' === $encAlgorithm) {
                 $aes = new AES();
                 $aes->setKey($cek);
                 $aes->setIV($jwe->getInitializationVector().$jwe->getAdditionalAuthenticationData());
-                $output =  $aes->decrypt($ciphertext);
+                $output = $aes->decrypt($ciphertext);
             } else {
                 throw new UnsupportedAlgorithmException($encAlgorithm);
             }

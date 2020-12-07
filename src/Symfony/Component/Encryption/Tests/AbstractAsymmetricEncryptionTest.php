@@ -103,7 +103,7 @@ abstract class AbstractAsymmetricEncryptionTest extends TestCase
     {
         $cypher = $this->getAsymmetricEncryption();
         $this->expectException(UnsupportedAlgorithmException::class);
-        $cypher->decrypt(JWE::create('foo', 'xx', 'yy', function($x) {return $x;}, 'bix')->getString(), 'private', 'public');
+        $cypher->decrypt(JWE::create('foo', 'xx', 'yy', function ($x) {return $x; }, 'bix')->getString(), 'private', 'public');
     }
 
     public function testAsymmetricDecryptionThrowsExceptionOnWrongPublicKey()

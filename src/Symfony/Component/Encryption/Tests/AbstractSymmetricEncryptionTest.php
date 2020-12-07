@@ -54,7 +54,7 @@ abstract class AbstractSymmetricEncryptionTest extends TestCase
     {
         $cypher = $this->getSymmetricEncryption();
         $this->expectException(UnsupportedAlgorithmException::class);
-        $cypher->decrypt(JWE::create('foo', 'xx', 'yy', function($x) {return $x;}, 'bix')->getString());
+        $cypher->decrypt(JWE::create('foo', 'xx', 'yy', function ($x) {return $x; }, 'bix')->getString());
     }
 
     abstract protected function getSymmetricEncryption(): SymmetricEncryptionInterface;

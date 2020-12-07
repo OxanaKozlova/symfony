@@ -35,7 +35,7 @@ interface SymmetricEncryptionInterface
      *
      * @param string $message plain text version of the message
      *
-     * @return string The output will be formatted according to JWE (RFC 7516).
+     * @return string the output will be formatted according to JWE (RFC 7516)
      *
      * @throws EncryptionException
      */
