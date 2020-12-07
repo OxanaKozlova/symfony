@@ -196,9 +196,16 @@ class JWE
         return $this->ciphertext;
     }
 
+
+
+    public function hasHeader(string $name): bool
+    {
+        return array_key_exists($name, $this->headers);
+    }
+
     public function getHeader(string $name): string
     {
-        if (array_key_exists($name, $this->headers)) {
+        if ($this->hasHeader($name)) {
             return $this->headers[$name];
         }
 

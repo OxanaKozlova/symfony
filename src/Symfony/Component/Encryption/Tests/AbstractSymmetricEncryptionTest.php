@@ -24,37 +24,37 @@ abstract class AbstractSymmetricEncryptionTest extends TestCase
 {
     public function testEncryption()
     {
-        $sodium = $this->getSymmetricEncryption();
-        $cipher = $sodium->encrypt('');
+        $cypher = $this->getSymmetricEncryption();
+        $cipher = $cypher->encrypt('');
         $this->assertNotEmpty('input', $cipher);
         $this->assertTrue(\strlen($cipher) > 10);
-        $this->assertNotEquals('input', $sodium->encrypt('input'));
+        $this->assertNotEquals('input', $cypher->encrypt('input'));
 
-        $cipher = $sodium->encrypt($input = 'random_string');
-        $sodium = $this->getSymmetricEncryption();
-        $this->assertNotEquals($cipher, $sodium->encrypt($input));
+        $cipher = $cypher->encrypt($input = 'random_string');
+        $cypher = $this->getSymmetricEncryption();
+        $this->assertNotEquals($cipher, $cypher->encrypt($input));
     }
 
     public function testDecryption()
     {
-        $sodium = $this->getSymmetricEncryption();
+        $cypher = $this->getSymmetricEncryption();
 
-        $this->assertEquals($input = '', $sodium->decrypt($sodium->encrypt($input)));
-        $this->assertEquals($input = 'foobar', $sodium->decrypt($sodium->encrypt($input)));
+        $this->assertEquals($input = '', $cypher->decrypt($cypher->encrypt($input)));
+        $this->assertEquals($input = 'foobar', $cypher->decrypt($cypher->encrypt($input)));
     }
 
     public function testDecryptionThrowsOnMalformedCipher()
     {
-        $sodium = $this->getSymmetricEncryption();
+        $cypher = $this->getSymmetricEncryption();
         $this->expectException(MalformedCipherException::class);
-        $sodium->decrypt('foo');
+        $cypher->decrypt('foo');
     }
 
     public function testDecryptionThrowsOnUnsupportedAlgorithm()
     {
-        $sodium = $this->getSymmetricEncryption();
+        $cypher = $this->getSymmetricEncryption();
         $this->expectException(UnsupportedAlgorithmException::class);
-        $sodium->decrypt((new JWE('foo', 'xx', 'yy'))->getString());
+        $cypher->decrypt(JWE::create('foo', 'xx', 'yy', function($x) {return $x;}, 'bix')->getString());
     }
 
     abstract protected function getSymmetricEncryption(): SymmetricEncryptionInterface;

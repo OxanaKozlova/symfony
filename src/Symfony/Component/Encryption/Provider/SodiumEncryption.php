@@ -61,7 +61,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
                 $encAlgorithm = 'A256GCM';
                 $cek = sodium_crypto_aead_aes256gcm_keygen();
                 $initializationVector = random_bytes(\SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
-                $ciphertext = function ($aad) use ($message, $initializationVector, $cek) {
+                $cipher = function ($aad) use ($message, $initializationVector, $cek) {
                     return sodium_crypto_aead_aes256gcm_encrypt($message, $aad, $initializationVector, $cek);
                 };
             } else {
@@ -69,7 +69,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
                 $encAlgorithm = 'sodium_secretbox';
                 $cek = sodium_crypto_secretbox_keygen();
                 $initializationVector = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
-                $ciphertext = function ($aad) use ($message, $initializationVector, $cek) {
+                $cipher = function ($aad) use ($message, $initializationVector, $cek) {
                     return sodium_crypto_secretbox($message, $initializationVector.$aad, $this->getSodiumKey($cek));
                 };
             }
@@ -81,7 +81,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
                 $headers['com.symfony.extra_nonce']=sodium_bin2base64($nonce, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
                 $encryptedCek = sodium_crypto_secretbox($cek, $nonce, $this->getSodiumKey($this->secret));
 
-                return JWE::create('sodium_secretbox', $encryptedCek, $encAlgorithm, $ciphertext, $initializationVector, $headers)->getString();
+                return JWE::create('sodium_secretbox', $encryptedCek, $encAlgorithm, $cipher, $initializationVector, $headers)->getString();
             }
 
             // Assert: Asymmetric
@@ -95,7 +95,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
                 $headers['com.symfony.extra_nonce']=sodium_bin2base64($nonce, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
             }
 
-            return JWE::create($algorithm, $encryptedCek, $encAlgorithm, $ciphertext, $initializationVector, $headers)->getString();
+            return JWE::create($algorithm, $encryptedCek, $encAlgorithm, $cipher, $initializationVector, $headers)->getString();
         } catch (\SodiumException $exception) {
             throw new EncryptionException('Failed to encrypt message.', $exception);
         }
@@ -133,7 +133,7 @@ class SodiumEncryption implements SymmetricEncryptionInterface, AsymmetricEncryp
             } elseif ('sodium_secretbox' === $encAlgorithm) {
                 $output = sodium_crypto_secretbox_open($ciphertext, $jwe->getInitializationVector().$jwe->getAdditionalAuthenticationData(), $this->getSodiumKey($cek));
             } else {
-                throw new UnsupportedAlgorithmException($algorithm);
+                throw new UnsupportedAlgorithmException($encAlgorithm);
             }
         } catch (\SodiumException $exception) {
             throw new DecryptionException(sprintf('Failed to decrypt message with algorithm "%s".', $algorithm), $exception);
