@@ -17,6 +17,7 @@ use Symfony\Bundle\FrameworkBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\FullStack;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Lock\Store\SemaphoreStore;
 use Symfony\Component\Mailer\Mailer;
@@ -534,6 +535,9 @@ class ConfigurationTest extends TestCase
             'rate_limiter' => [
                 'enabled' => false,
                 'limiters' => [],
+            ],
+            'encryption' => [
+                'enabled' => !class_exists(FullStack::class) && interface_exists(SymmetricEncryptionInterface::class),
             ],
         ];
     }
