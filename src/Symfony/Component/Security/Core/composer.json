@@ -30,8 +30,7 @@
         "symfony/ldap": "^4.4|^5.0",
         "symfony/translation": "^4.4|^5.0",
         "symfony/validator": "^5.2",
-        "psr/log": "~1.0",
-        "phpseclib/phpseclib": "^2.0.29"
+        "psr/log": "~1.0"
     },
     "conflict": {
         "symfony/event-dispatcher": "<4.4",
