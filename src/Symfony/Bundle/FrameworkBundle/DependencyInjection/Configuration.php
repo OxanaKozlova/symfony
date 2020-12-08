@@ -1896,7 +1896,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('encryption')
-                    ->info('esi configuration')
+                    ->info('encryption configuration')
                     ->{!class_exists(FullStack::class) && interface_exists(SymmetricEncryptionInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                 ->end()
             ->end()
