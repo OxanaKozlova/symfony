@@ -12,10 +12,9 @@
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use phpseclib\Crypt\AES;
-use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
-use Symfony\Component\Encryption\Provider\PhpseclibEncryption;
-use Symfony\Component\Encryption\Provider\SodiumEncryption;
-use Symfony\Component\Encryption\SymmetricEncryptionInterface;
+use Symfony\Component\Encryption\EncryptionInterface;
+use Symfony\Component\Encryption\Phpseclib\PhpseclibEncryption;
+use Symfony\Component\Encryption\Sodium\SodiumEncryption;
 
 return static function (ContainerConfigurator $container) {
     $sodiumInstalled = \function_exists('sodium_crypto_box_keypair');
@@ -31,7 +30,6 @@ return static function (ContainerConfigurator $container) {
             ->args([
                 '%kernel.secret%',
             ])
-        ->alias(SymmetricEncryptionInterface::class, $phpseclibInstalled && !$sodiumInstalled ? 'security.encryption.phpseclib' : 'security.encryption.sodium')
-        ->alias(AsymmetricEncryptionInterface::class, $phpseclibInstalled && !$sodiumInstalled ? 'security.encryption.phpseclib' : 'security.encryption.sodium')
+        ->alias(EncryptionInterface::class, $phpseclibInstalled && !$sodiumInstalled ? 'security.encryption.phpseclib' : 'security.encryption.sodium')
         ;
 };

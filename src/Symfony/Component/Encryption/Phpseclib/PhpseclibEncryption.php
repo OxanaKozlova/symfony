@@ -9,19 +9,19 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Encryption\Provider;
+namespace Symfony\Component\Encryption\Phpseclib;
 
 use phpseclib\Crypt\AES;
 use phpseclib\Crypt\Random;
 use phpseclib\Crypt\RSA;
 use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
+use Symfony\Component\Encryption\Ciphertext;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
 use Symfony\Component\Encryption\Exception\InvalidArgumentException;
 use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnableToVerifySignatureException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
-use Symfony\Component\Encryption\Ciphertext;
 use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 
 if (!class_exists(RSA::class)) {
@@ -37,15 +37,7 @@ if (!class_exists(RSA::class)) {
  */
 class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEncryptionInterface
 {
-    private $secret;
-
-    /**
-     * @var string application secret
-     */
-    public function __construct(string $secret)
-    {
-        $this->secret = $secret;
-    }
+    // TODO fix this class
 
     public function generateKeypair(): array
     {

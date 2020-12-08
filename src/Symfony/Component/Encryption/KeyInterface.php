@@ -11,9 +11,6 @@
 
 namespace Symfony\Component\Encryption;
 
-use Symfony\Component\Encryption\Exception\DecryptionException;
-use Symfony\Component\Encryption\Exception\EncryptionException;
-
 /**
  * A Key for a specific user and specific Encryption implementation. Keys cannot
  * be shared between Encryption implementations.
@@ -27,19 +24,35 @@ use Symfony\Component\Encryption\Exception\EncryptionException;
 interface KeyInterface
 {
     /**
-     * Returns a string to be stored in a safe place
+     * Returns a string to be stored in a safe place.
      */
     public function toString(): string;
 
     /**
-     * Creates a Key from stored data
+     * Creates a Key from stored data.
      */
     public function fromString(string $string): self;
 
     /**
-     * Get the public key from this Key. Not all Keys have a public key.
+     * Creates a new KeyInterface object.
+     *
+     * When Alice wants to send and sign a message to Bob. She takes her private
+     * Key and pair it with Bob's public key.
+     *
+     * <code>
+     *     $aliceKey = SodiumKey::fromString('...');
+     *     $bobKey = SodiumKey::fromString('...');
+     *     $keypair = $aliceKey->createKeypair($bobKey);
+     * </code>
+     */
+    public function createKeypair(self $publicKey): self;
+
+    /**
+     * Creates a new KeyInterface object.
+     *
+     * When Alice wants share her public key with Bob, she sends him this object.
      *
      * The public key can be shared.
      */
-    public function getPublicKey(): ?string;
+    public function createPublicKey(): self;
 }

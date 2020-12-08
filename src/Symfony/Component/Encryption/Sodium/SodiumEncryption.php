@@ -11,17 +11,13 @@
 
 namespace Symfony\Component\Encryption\Sodium;
 
-use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
+use Symfony\Component\Encryption\Ciphertext;
 use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
-use Symfony\Component\Encryption\Exception\InvalidArgumentException;
 use Symfony\Component\Encryption\Exception\InvalidKeyException;
-use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
-use Symfony\Component\Encryption\Ciphertext;
 use Symfony\Component\Encryption\KeyInterface;
-use Symfony\Component\Encryption\SymmetricEncryptionInterface;
 
 /**
  * Using the Sodium extension to safely encrypt your data.
@@ -32,9 +28,9 @@ use Symfony\Component\Encryption\SymmetricEncryptionInterface;
  */
 final class SodiumEncryption implements EncryptionInterface
 {
-    public function generateKey(): KeyInterface
+    public function generateKey(string $secret = null): KeyInterface
     {
-        return SodiumKey::create(sodium_crypto_secretbox_keygen(), sodium_crypto_box_keypair());
+        return SodiumKey::create($secret ?? sodium_crypto_secretbox_keygen(), sodium_crypto_box_keypair());
     }
 
     public function encrypt(string $message, KeyInterface $myKey): string
@@ -60,11 +56,7 @@ final class SodiumEncryption implements EncryptionInterface
         }
 
         try {
-            if (null === $publicKey = $recipientKey->getPublicKey()) {
-                throw new InvalidKeyException('This key does not have a public key. Who should we encrypt this message for?');
-            }
-
-            $ciphertext = sodium_crypto_box_seal($message, $publicKey);
+            $ciphertext = sodium_crypto_box_seal($message, $recipientKey->getPublicKey());
         } catch (\SodiumException $exception) {
             throw new EncryptionException('Failed to encrypt message.', $exception);
         }
@@ -79,10 +71,6 @@ final class SodiumEncryption implements EncryptionInterface
         }
 
         try {
-            if (null === $publicKey = $keypair->getPublicKey()) {
-                throw new InvalidKeyException('This key does not have a public key. Who should we encrypt this message for?');
-            }
-
             $nonce = random_bytes(\SODIUM_CRYPTO_BOX_NONCEBYTES);
             $ciphertext = sodium_crypto_box($message, $nonce, $keypair->getKeypair());
         } catch (\SodiumException $exception) {
@@ -105,7 +93,7 @@ final class SodiumEncryption implements EncryptionInterface
 
         try {
             if ('sodium_crypto_box_seal' === $algorithm) {
-                $output = sodium_crypto_box_seal_open($payload, $key->getKeypair());
+                $output = sodium_crypto_box_seal_open($payload, $key->getKeypair(true));
             } elseif ('sodium_crypto_box' === $algorithm) {
                 $output = sodium_crypto_box_open($payload, $nonce, $key->getKeypair());
             } elseif ('sodium_secretbox' === $algorithm) {

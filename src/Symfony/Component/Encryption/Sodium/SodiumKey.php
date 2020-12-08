@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Encryption\Sodium;
 
-
 use Symfony\Component\Encryption\Exception\InvalidKeyException;
 use Symfony\Component\Encryption\KeyInterface;
 
@@ -34,6 +33,7 @@ final class SodiumKey implements KeyInterface
 
     /**
      * A keypair can only be created from a public and private key.
+     *
      * @var string|null
      */
     private $keypair;
@@ -43,9 +43,10 @@ final class SodiumKey implements KeyInterface
      */
     public static function create(string $secret, string $keypair): self
     {
-        $key = new self();
-        $key->secret = $secret;
+        $key = self::fromSecret($secret);
         $key->keypair = $keypair;
+        $key->publicKey = sodium_crypto_box_publickey($keypair);
+        $key->privateKey = sodium_crypto_box_secretkey($keypair);
 
         return $key;
     }
@@ -59,9 +60,9 @@ final class SodiumKey implements KeyInterface
 
         $secretLength = \strlen($secret);
         if ($secretLength > \SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            $key->secret =  substr($secret, 0, \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
-        }elseif ($secretLength < \SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            $key->secret =  sodium_pad($secret, \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
+            $key->secret = substr($secret, 0, \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
+        } elseif ($secretLength < \SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+            $key->secret = sodium_pad($secret, \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
         } else {
             $key->secret = $secret;
         }
@@ -94,13 +95,22 @@ final class SodiumKey implements KeyInterface
         return $key;
     }
 
-
     public static function fromKeypair(string $keypair): self
     {
         $key = new self();
         $key->keypair = $keypair;
 
         return $key;
+    }
+
+    public function createKeypair(KeyInterface $publicKey): KeyInterface
+    {
+        return self::fromPrivateAndPublicKeys($this->getPrivateKey(), $publicKey->getPublicKey());
+    }
+
+    public function createPublicKey(): KeyInterface
+    {
+        return self::fromPublicKey($this->getPublicKey());
     }
 
     public function toString(): string
@@ -116,15 +126,10 @@ final class SodiumKey implements KeyInterface
         return $key;
     }
 
-    public function getPublicKey(): ?string
-    {
-        return $this->publicKey;
-    }
-
     public function getSecret(): string
     {
         if (null === $this->secret) {
-            throw new InvalidKeyException('This key does not have a secret');
+            throw new InvalidKeyException('This key does not have a secret.');
         }
 
         return $this->secret;
@@ -133,18 +138,38 @@ final class SodiumKey implements KeyInterface
     public function getPrivateKey(): string
     {
         if (null === $this->privateKey) {
-            throw new InvalidKeyException('This key does not have a private key');
+            throw new InvalidKeyException('This key does not have a private key.');
         }
 
         return $this->privateKey;
     }
 
-    public function getKeypair(): string
+    public function getPublicKey(): string
+    {
+        if (null === $this->publicKey) {
+            throw new InvalidKeyException('This key does not have a public key.');
+        }
+
+        return $this->publicKey;
+    }
+
+    public function getKeypair(bool $allowCreatingPublicKey = false): string
     {
         if (null === $this->keypair) {
-            if (null === $this->privateKey && null === $this->publicKey) {
-                throw new InvalidKeyException('This key does not have a keypair');
+            if (null === $this->privateKey) {
+                throw new InvalidKeyException('This key does not have a keypair.');
             }
+            if (null === $this->publicKey) {
+                if (!$allowCreatingPublicKey) {
+                    throw new InvalidKeyException('This key does not have a keypair.');
+                }
+
+                $publicKey = sodium_crypto_box_publickey_from_secretkey($this->privateKey);
+
+                // Dont cache this
+                return sodium_crypto_box_keypair_from_secretkey_and_publickey($this->privateKey, $publicKey);
+            }
+
             $this->keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($this->privateKey, $this->publicKey);
         }
 

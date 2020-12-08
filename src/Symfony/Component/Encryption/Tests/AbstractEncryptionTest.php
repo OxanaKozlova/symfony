@@ -1,0 +1,176 @@
+<?php
+
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Symfony\Component\Encryption\Tests;
+
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Encryption\Ciphertext;
+use Symfony\Component\Encryption\EncryptionInterface;
+use Symfony\Component\Encryption\Exception\DecryptionException;
+use Symfony\Component\Encryption\Exception\InvalidKeyException;
+use Symfony\Component\Encryption\Exception\MalformedCipherException;
+use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
+use Symfony\Component\Encryption\KeyInterface;
+
+/**
+ * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ */
+abstract class AbstractEncryptionTest extends TestCase
+{
+    public function testGenerateKey()
+    {
+        $cipher = $this->getEncryption();
+        $key = $cipher->generateKey('s3cr3t');
+
+        $message = 'input';
+        $ciphertext = $cipher->encrypt($message, $key);
+
+        $key2 = $cipher->generateKey('s3cr3t');
+        $this->assertEquals($message, $cipher->decrypt($ciphertext, $key2));
+    }
+
+    public function testEncrypt()
+    {
+        $cipher = $this->getEncryption();
+        $key = $cipher->generateKey();
+
+        $ciphertext = $cipher->encrypt('', $key);
+        $this->assertNotEmpty($ciphertext);
+        $this->assertTrue(\strlen($ciphertext) > 10);
+        $this->assertNotEquals('input', $cipher->encrypt('input', $key));
+
+        $input = 'random_string';
+        $key2 = $cipher->generateKey();
+        $this->assertNotEquals($cipher->encrypt($input, $key), $cipher->encrypt($input, $key2));
+    }
+
+    public function testDecryptSymmetric()
+    {
+        $cipher = $this->getEncryption();
+        $key = $cipher->generateKey();
+
+        $this->assertEquals($input = '', $cipher->decrypt($cipher->encrypt($input, $key), $key));
+        $this->assertEquals($input = 'foobar', $cipher->decrypt($cipher->encrypt($input, $key), $key));
+    }
+
+    public function testDecryptionThrowsOnMalformedCipher()
+    {
+        $cipher = $this->getEncryption();
+        $key = $cipher->generateKey();
+        $this->expectException(MalformedCipherException::class);
+        $cipher->decrypt('foo', $key);
+    }
+
+    public function testDecryptionThrowsOnUnsupportedAlgorithm()
+    {
+        $cipher = $this->getEncryption();
+        $key = $cipher->generateKey();
+
+        $this->expectException(UnsupportedAlgorithmException::class);
+        $cipher->decrypt(Ciphertext::create('foo', 'bar', 'baz')->getString(), $key);
+    }
+
+    public function testEncryptFor()
+    {
+        $cipher = $this->getEncryption();
+        $bobKey = $cipher->generateKey();
+        $bobPublic = $this->createPublicKey($bobKey);
+
+        $ciphertext = $cipher->encryptFor('', $bobPublic);
+        $this->assertNotEmpty($ciphertext);
+        $this->assertTrue(\strlen($ciphertext) > 10);
+        $this->assertNotEquals('input', $cipher->encryptFor('input', $bobPublic));
+
+        $message = 'the cake is a lie';
+        $ciphertext = $cipher->encryptFor($message, $bobPublic);
+        $this->assertEquals($message, $cipher->decrypt($ciphertext, $bobKey));
+        $this->assertEquals($message, $cipher->decrypt($ciphertext, $this->createPrivateKey($bobKey)));
+    }
+
+    public function testEncryptForAndSign()
+    {
+        $cipher = $this->getEncryption();
+        $aliceKey = $cipher->generateKey();
+        $bobKey = $cipher->generateKey();
+
+        $ciphertext = $cipher->encryptForAndSign('', $aliceKey->createKeypair($bobKey));
+        $this->assertNotEmpty($ciphertext);
+        $this->assertTrue(\strlen($ciphertext) > 10);
+
+        $message = 'the cake is a lie';
+        $ciphertext = $cipher->encryptForAndSign($message, $aliceKey->createKeypair($bobKey));
+        $this->assertEquals($message, $cipher->decrypt($ciphertext, $bobKey->createKeypair($aliceKey)));
+    }
+
+    /**
+     * Bob wants to be sure that Alice sent the message, but Alice never signed it.
+     */
+    public function testDecryptUnableToVerifySender()
+    {
+        $cipher = $this->getEncryption();
+        $aliceKey = $cipher->generateKey();
+        $bobKey = $cipher->generateKey();
+
+        $ciphertext = $cipher->encryptFor($input = 'input', $this->createPublicKey($bobKey));
+        $this->expectException(DecryptionException::class);
+        $this->assertEquals($input, $cipher->decrypt($ciphertext, $bobKey->createKeypair($aliceKey)));
+    }
+
+    /**
+     * Alice signs the message but Bob never verifies it.
+     */
+    public function testDecryptIgnoreToVerifySender()
+    {
+        $cipher = $this->getEncryption();
+        $aliceKey = $cipher->generateKey();
+        $bobKey = $cipher->generateKey();
+
+        $ciphertext = $cipher->encryptForAndSign($input = 'input', $aliceKey->createKeypair($bobKey));
+        $this->expectException(InvalidKeyException::class);
+        $this->assertEquals($input, $cipher->decrypt($ciphertext, $this->createPrivateKey($bobKey)));
+    }
+
+    /**
+     * Bob receives a message he thinks is from Alice, but it was sent by Eve.
+     */
+    public function testDecryptThrowsExceptionOnWrongPublicKey()
+    {
+        $cipher = $this->getEncryption();
+        $aliceKey = $cipher->generateKey();
+        $bobKey = $cipher->generateKey();
+        $eveKey = $cipher->generateKey();
+
+        $ciphertext = $cipher->encryptForAndSign('input', $eveKey->createKeypair($bobKey));
+        $this->expectException(DecryptionException::class);
+        $cipher->decrypt($ciphertext, $bobKey->createKeypair($aliceKey));
+    }
+
+    /**
+     * Alice sends a message to Bob, but Eve is trying to read it.
+     */
+    public function testDecryptThrowsExceptionOnWrongPrivateKey()
+    {
+        $cipher = $this->getEncryption();
+        $aliceKey = $cipher->generateKey();
+        $bobKey = $cipher->generateKey();
+        $eveKey = $cipher->generateKey();
+
+        $ciphertext = $cipher->encryptForAndSign('input', $aliceKey->createKeypair($bobKey));
+        $this->expectException(DecryptionException::class);
+        $cipher->decrypt($ciphertext, $eveKey->createKeypair($aliceKey));
+    }
+
+    abstract protected function getEncryption(): EncryptionInterface;
+
+    abstract protected function createPublicKey(KeyInterface $key): KeyInterface;
+
+    abstract protected function createPrivateKey(KeyInterface $key): KeyInterface;
+}

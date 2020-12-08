@@ -22,7 +22,7 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
-use Symfony\Component\Encryption\SymmetricEncryptionInterface;
+use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -1897,7 +1897,7 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('encryption')
                     ->info('encryption configuration')
-                    ->{!class_exists(FullStack::class) && interface_exists(SymmetricEncryptionInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                    ->{!class_exists(FullStack::class) && interface_exists(EncryptionInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                 ->end()
             ->end()
         ;
