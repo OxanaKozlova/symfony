@@ -14,15 +14,17 @@ namespace Symfony\Component\Encryption\Phpseclib;
 use phpseclib\Crypt\AES;
 use phpseclib\Crypt\Random;
 use phpseclib\Crypt\RSA;
-use Symfony\Component\Encryption\AsymmetricEncryptionInterface;
 use Symfony\Component\Encryption\Ciphertext;
+use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
 use Symfony\Component\Encryption\Exception\InvalidArgumentException;
+use Symfony\Component\Encryption\Exception\InvalidKeyException;
 use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnableToVerifySignatureException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
-use Symfony\Component\Encryption\SymmetricEncryptionInterface;
+use Symfony\Component\Encryption\KeyInterface;
+use Symfony\Component\Encryption\Sodium\SodiumKey;
 
 if (!class_exists(RSA::class)) {
     throw new \LogicException('You cannot use "Symfony\Component\Security\Core\Encryption\PhpseclibEncryption" as the "phpseclib/phpseclib:2.x" package is not installed. Try running "composer require phpseclib/phpseclib:^2".');
@@ -35,11 +37,9 @@ if (!class_exists(RSA::class)) {
  *
  * @experimental in 5.3
  */
-class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEncryptionInterface
+class PhpseclibEncryption implements EncryptionInterface
 {
-    // TODO fix this class
-
-    public function generateKeypair(): array
+    public function generateKey(string $secret = null): KeyInterface
     {
         $rsa = new RSA();
         $key = $rsa->createKey();
@@ -48,46 +48,27 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
             throw new EncryptionException('Failed to generate RSA keypair.');
         }
 
-        return [
-            'public' => $key['publickey'],
-            'private' => $key['privatekey'],
-        ];
+        if ($secret === null) {
+            $secret = random_bytes(32);
+        }
+
+        return PhpseclibKey::create($secret, $key['privatekey'], $key['publickey']);
     }
 
-    public function encrypt(string $message, ?string $publicKey = null, ?string $privateKey = null): string
+    public function encrypt(string $message, KeyInterface $myKey): string
     {
-        if (null === $publicKey && null !== $privateKey) {
-            throw new InvalidArgumentException('Private key cannot have a value when no public key is provided.');
+        if (!$myKey instanceof PhpseclibKey) {
+            throw new InvalidKeyException();
         }
 
         set_error_handler(__CLASS__.'::throwError');
 
         try {
-            if (null === $publicKey && null === $privateKey) {
-                $aes = new AES();
-                $aes->setPassword($this->secret);
-                $aes->setIV($nonce = Random::string($aes->getBlockLength() >> 3));
+            $aes = new AES();
+            $aes->setPassword($myKey->getSecret());
+            $aes->setIV($nonce = Random::string($aes->getBlockLength() >> 3));
 
-                return Ciphertext::create('RSAES-PKCS1-v1_5', $aes->encrypt($message), $nonce)->getString();
-            }
-
-            $headers = [];
-
-            // Asymmetric encryption
-            $rsa = new RSA();
-            $rsa->loadKey($publicKey);
-            $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
-            $ciphertext = $rsa->encrypt($message);
-
-            if (null !== $privateKey) {
-                // Load private key after encryption
-                $rsa->loadKey($privateKey);
-                $rsa->setSignatureMode(RSA::SIGNATURE_PSS);
-                $headers['alg_signature'] = 'RSA-PSS';
-                $headers['signature'] = base64_encode($rsa->sign($ciphertext));
-            }
-
-            return Ciphertext::create('RSA-OAEP', $ciphertext, random_bytes(8), $headers)->getString();
+            return Ciphertext::create('RSAES-PKCS1-v1_5', $aes->encrypt($message), $nonce)->getString();
         } catch (\ErrorException $exception) {
             throw new EncryptionException(null, $exception);
         } finally {
@@ -95,8 +76,56 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
         }
     }
 
-    public function decrypt(string $message, ?string $privateKey = null, ?string $publicKey = null): string
+
+    public function encryptFor(string $message, KeyInterface $recipientKey): string
     {
+        if (!$recipientKey instanceof PhpseclibKey) {
+            throw new InvalidKeyException();
+        }
+
+        try {
+            $rsa = new RSA();
+            $rsa->loadKey($recipientKey->getPublicKey());
+            $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
+
+            return Ciphertext::create('RSA-OAEP', $rsa->encrypt($message), random_bytes(8))->getString();
+        } catch (\ErrorException $exception) {
+            throw new EncryptionException(null, $exception);
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    public function encryptForAndSign(string $message, KeyInterface $keypair): string
+    {
+        if (!$keypair instanceof PhpseclibKey) {
+            throw new InvalidKeyException();
+        }
+        try {
+            $rsa = new RSA();
+            $rsa->loadKey($keypair->getPublicKey());
+            $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
+            $ciphertext = $rsa->encrypt($message);
+
+                // Load private key after encryption
+            $rsa->loadKey($keypair->getPublicKey());
+            $rsa->setSignatureMode(RSA::SIGNATURE_PSS);
+            $headers['signature'] = base64_encode($rsa->sign($ciphertext));
+
+            return Ciphertext::create('RSA-OAEP-PSS', $ciphertext, random_bytes(8), $headers)->getString();
+        } catch (\ErrorException $exception) {
+            throw new EncryptionException(null, $exception);
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    public function decrypt(string $message, KeyInterface $key): string
+    {
+        if (!$key instanceof PhpseclibKey) {
+            throw new InvalidKeyException();
+        }
+
         $ciphertext = Ciphertext::parse($message);
         $algorithm = $ciphertext->getAlgorithm();
         $payload = $ciphertext->getPayload();
@@ -106,30 +135,20 @@ class PhpseclibEncryption implements SymmetricEncryptionInterface, AsymmetricEnc
         try {
             if ('RSAES-PKCS1-v1_5' === $algorithm) {
                 $aes = new AES();
-                $aes->setPassword($this->secret);
+                $aes->setPassword($key->getSecret());
                 $aes->setIV($nonce);
                 $output = $aes->decrypt($payload);
-            } elseif ('RSA-OAEP' === $algorithm) {
+            } elseif ('RSA-OAEP' === $algorithm || 'RSA-OAEP-PSS' === $algorithm) {
                 $rsa = new RSA();
-                if ($ciphertext->hasHeader('alg_signature')) {
-                    if (null === $publicKey) {
-                        throw new SignatureVerificationRequiredException();
-                    }
-
-                    if ('RSA-PSS' !== $ciphertext->getHeader('alg_signature')) {
-                        throw new UnsupportedAlgorithmException($ciphertext->getHeader('alg_signature'));
-                    }
-
-                    $rsa->loadKey($publicKey);
+                if ('RSA-OAEP-PSS' === $algorithm) {
+                    $rsa->loadKey($key->getPublicKey());
                     $verify = $rsa->verify($payload, base64_decode($ciphertext->getHeader('signature')));
                     if (!$verify) {
                         throw new UnableToVerifySignatureException();
                     }
-                } elseif (null !== $publicKey) {
-                    throw new UnableToVerifySignatureException();
                 }
 
-                $rsa->loadKey($privateKey);
+                $rsa->loadKey($key->getPrivateKey());
                 $output = $rsa->decrypt($payload);
             } else {
                 throw new UnsupportedAlgorithmException($algorithm);
