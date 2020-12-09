@@ -23,10 +23,6 @@ use Symfony\Component\Encryption\Exception\UnableToVerifySignatureException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
 use Symfony\Component\Encryption\KeyInterface;
 
-if (!class_exists(RSA::class)) {
-    throw new \LogicException('You cannot use "Symfony\Component\Security\Core\Encryption\PhpseclibEncryption" as the "phpseclib/phpseclib:2.x" package is not installed. Try running "composer require phpseclib/phpseclib:^2".');
-}
-
 /**
  * The secret key length should be 32 bytes, but other sizes are accepted.
  *
@@ -36,6 +32,13 @@ if (!class_exists(RSA::class)) {
  */
 class PhpseclibEncryption implements EncryptionInterface
 {
+    public function __construct()
+    {
+        if (!class_exists(RSA::class)) {
+            throw new \LogicException('You cannot use "Symfony\Component\Security\Core\Encryption\PhpseclibEncryption" as the "phpseclib/phpseclib:2.x" package is not installed. Try running "composer require phpseclib/phpseclib:^2".');
+        }
+    }
+
     public function generateKey(string $secret = null): KeyInterface
     {
         $rsa = new RSA();

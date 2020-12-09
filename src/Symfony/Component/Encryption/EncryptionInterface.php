@@ -69,21 +69,21 @@ interface EncryptionInterface
      * kept a secret.
      *
      * When Alice and Bob wants to communicate they share their public keys with
-     * each other. Alice will encrypt a message with bobs public key. When Bob
-     * receive the message, he will decrypt it with his private key.
+     * each other. Alice will encrypt a message with Bob's public key. When Bob
+     * receives the message, he will decrypt it with his private key.
      *
      *
      * <code>
+     *     // Bob:
      *     $bobKey = $encryption->generateKey();
-     *     $bobPublicKey = serialize($bobKey->createPublicKey());
+     *     $bobPublicOnly = $bobKey->createPublicKey();
+     *     // Bob sends $bobPublicOnly to Alice
      *
-     *     // Bob sends the public key to Alice
+     *     // Alice:
+     *     $ciphertext = $encryption->encryptFor('input', $bobPublicOnly);
+     *     // Alice sends $ciphertext to Bob
      *
-     *     $key = unserialize($bobPublicKey);
-     *     $ciphertext = $encryption->encryptFor('input', $key);
-     *
-     *     // Alice sends ciphertext to bob
-     *
+     *     // Bob:
      *     $message = $encryption->decrypt($ciphertext, $bobKey);
      * </code>
      *
@@ -106,15 +106,27 @@ interface EncryptionInterface
      *
      * When Alice and Bob wants to communicate they share their public keys with
      * each other. Alice will encrypt a message with keypair [ alice_private, bob_public ].
-     * When Bob receive the message, he will decrypt it with keypair [ bob_private, alice_public ].
+     * When Bob receives the message, he will decrypt it with keypair [ bob_private, alice_public ].
      *
      * <code>
+     *     // Alice:
      *     $aliceKey = $encryption->generateKey();
-     *     $bobKey = $encryption->generateKey();
-     *     $keypair = $aliceKey->createKeypair($bobKey);
+     *     $alicePublicOnly = $aliceKey->createPublicKey();
+     *     // Alice sends $alicePublicOnly to Bob
      *
-     *     $ciphertext = $encryption->encryptForAndSign('input', $keypair);
-     *     $message = $encryption->decrypt($ciphertext, $bobKey->createKeypair($aliceKey));
+     *     // Bob:
+     *     $bobKey = $encryption->generateKey();
+     *     $bobPublicOnly = $bobKey->createPublicKey();
+     *     // Bob sends $bobPublicOnly to Alice
+     *
+     *     // Alice:
+     *     $keypairForSending = $aliceKey->createKeypair($bobPublicOnly);
+     *     $ciphertext = $encryption->encryptForAndSign('input', $keypairForSending);
+     *     // Alice sends $ciphertext to Bob
+     *
+     *     // Bob:
+     *     $keypairForReceiving = $bobKey->createKeypair($alicePublicOnly)
+     *     $message = $encryption->decrypt($ciphertext, $keypairForReceiving);
      * </code>
      *
      * @param string       $message plain text version of the message
