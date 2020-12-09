@@ -68,20 +68,20 @@ class Ciphertext
     public static function parse(string $input): self
     {
         $parts = explode('.', $input);
-        if (false === $parts || 4 !== \count($parts)) {
+        if (!\is_array($parts) || 4 !== \count($parts)) {
             throw new MalformedCipherException();
         }
 
-        [$headersString, $payload, $nonce, $authenticationTag] = $parts;
+        [$headersString, $payload, $nonce, $hashSignature] = $parts;
 
         $headersString = self::base64UrlDecode($headersString);
         $payload = self::base64UrlDecode($payload);
         $nonce = self::base64UrlDecode($nonce);
-        $authenticationTag = self::base64UrlDecode($authenticationTag);
+        $hashSignature = self::base64UrlDecode($hashSignature);
 
         // Check if Authentication Tag is valid
         $hash = hash('sha256', $headersString.$payload.$nonce);
-        if (!hash_equals($hash, $authenticationTag)) {
+        if (!hash_equals($hash, $hashSignature)) {
             throw new MalformedCipherException();
         }
 

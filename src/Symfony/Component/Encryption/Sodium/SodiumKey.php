@@ -105,12 +105,7 @@ final class SodiumKey implements KeyInterface
         return $key;
     }
 
-    public function createKeypair(KeyInterface $publicKey): KeyInterface
-    {
-        return self::fromPrivateAndPublicKeys($this->getPrivateKey(), $publicKey->getPublicKey());
-    }
-
-    public function createPublicKey(): KeyInterface
+    public function extractPublicKey(): KeyInterface
     {
         return self::fromPublicKey($this->getPublicKey());
     }
@@ -162,21 +157,15 @@ final class SodiumKey implements KeyInterface
         return $this->publicKey;
     }
 
-    public function getKeypair(bool $allowCreatingPublicKey = false): string
+    public function getKeypair(): string
     {
         if (null === $this->keypair) {
             if (null === $this->privateKey) {
                 throw new InvalidKeyException('This key does not have a keypair.');
             }
+
             if (null === $this->publicKey) {
-                if (!$allowCreatingPublicKey) {
-                    throw new InvalidKeyException('This key does not have a keypair.');
-                }
-
-                $publicKey = sodium_crypto_box_publickey_from_secretkey($this->privateKey);
-
-                // Dont cache this
-                return sodium_crypto_box_keypair_from_secretkey_and_publickey($this->privateKey, $publicKey);
+                $this->publicKey = sodium_crypto_box_publickey_from_secretkey($this->privateKey);
             }
 
             $this->keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($this->privateKey, $this->publicKey);

@@ -71,7 +71,7 @@ final class PhpseclibKey implements KeyInterface
         return $key;
     }
 
-    public function createPublicKey(): KeyInterface
+    public function extractPublicKey(): KeyInterface
     {
         return self::fromPublicKey($this->getPublicKey());
     }
@@ -94,11 +94,6 @@ final class PhpseclibKey implements KeyInterface
     public function __unserialize(array $data): void
     {
         [$this->secret, $this->privateKey, $this->publicKey] = $data;
-    }
-
-    public function createKeypair(KeyInterface $publicKey): KeyInterface
-    {
-        return self::fromPrivateAndPublicKeys($this->getPrivateKey(), $publicKey->getPublicKey());
     }
 
     public function getSecret(): string

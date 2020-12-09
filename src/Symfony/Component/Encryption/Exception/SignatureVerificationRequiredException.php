@@ -19,7 +19,7 @@ namespace Symfony\Component\Encryption\Exception;
  *
  * @experimental in 5.3
  */
-class SignatureVerificationRequiredException extends DecryptionException implements ExceptionInterface
+class SignatureVerificationRequiredException extends DecryptionException
 {
     public function __construct(\Throwable $previous = null)
     {

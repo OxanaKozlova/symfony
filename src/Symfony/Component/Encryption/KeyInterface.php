@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Encryption;
 
+use Symfony\Component\Encryption\Exception\InvalidKeyException;
+
 /**
  * A key for a specific user and specific Encryption implementation. Keys cannot
  * be shared between Encryption implementations.
@@ -26,23 +28,11 @@ interface KeyInterface extends \Serializable
     /**
      * Creates a new KeyInterface object.
      *
-     * When Alice wants to send and sign a message to Bob. She takes her private
-     * key and pair it with Bob's public key.
-     *
-     * <code>
-     *     $aliceKey = $encryption->generateKey();
-     *     $bobKey = $encryption->generateKey();
-     *     $keypair = $aliceKey->createKeypair($bobKey);
-     * </code>
-     */
-    public function createKeypair(self $publicKey): self;
-
-    /**
-     * Creates a new KeyInterface object.
-     *
      * When Alice wants share her public key with Bob, she sends him this object.
      *
      * The public key can be shared.
+     *
+     * @throws InvalidKeyException
      */
-    public function createPublicKey(): self;
+    public function extractPublicKey(): self;
 }

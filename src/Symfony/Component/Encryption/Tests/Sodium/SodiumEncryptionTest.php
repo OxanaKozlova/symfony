@@ -31,11 +31,6 @@ class SodiumEncryptionTest extends AbstractEncryptionTest
         return new SodiumEncryption();
     }
 
-    protected function createPublicKey(KeyInterface $key): KeyInterface
-    {
-        return SodiumKey::fromPublicKey($key->getPublicKey());
-    }
-
     protected function createPrivateKey(KeyInterface $key): KeyInterface
     {
         return SodiumKey::fromPrivateKey($key->getPrivateKey());

@@ -16,7 +16,7 @@ namespace Symfony\Component\Encryption\Exception;
  *
  * @experimental in 5.3
  */
-class UnsupportedAlgorithmException extends DecryptionException implements ExceptionInterface
+class UnsupportedAlgorithmException extends DecryptionException
 {
     public function __construct(string $algorithm, \Throwable $previous = null)
     {

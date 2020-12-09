@@ -15,8 +15,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Encryption\Ciphertext;
 use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Encryption\Exception\DecryptionException;
-use Symfony\Component\Encryption\Exception\InvalidKeyException;
 use Symfony\Component\Encryption\Exception\MalformedCipherException;
+use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
 use Symfony\Component\Encryption\KeyInterface;
 
@@ -82,7 +82,7 @@ abstract class AbstractEncryptionTest extends TestCase
     {
         $cipher = $this->getEncryption();
         $bobKey = $cipher->generateKey();
-        $bobPublic = $this->createPublicKey($bobKey);
+        $bobPublic = $bobKey->extractPublicKey();
 
         $ciphertext = $cipher->encryptFor('', $bobPublic);
         $this->assertNotEmpty($ciphertext);
@@ -101,13 +101,13 @@ abstract class AbstractEncryptionTest extends TestCase
         $aliceKey = $cipher->generateKey();
         $bobKey = $cipher->generateKey();
 
-        $ciphertext = $cipher->encryptForAndSign('', $aliceKey->createKeypair($bobKey));
+        $ciphertext = $cipher->encryptForAndSign('', $bobKey->extractPublicKey(), $aliceKey);
         $this->assertNotEmpty($ciphertext);
         $this->assertTrue(\strlen($ciphertext) > 10);
 
         $message = 'the cake is a lie';
-        $ciphertext = $cipher->encryptForAndSign($message, $aliceKey->createKeypair($bobKey));
-        $this->assertEquals($message, $cipher->decrypt($ciphertext, $bobKey->createKeypair($aliceKey)));
+        $ciphertext = $cipher->encryptForAndSign($message, $bobKey->extractPublicKey(), $aliceKey);
+        $this->assertEquals($message, $cipher->decrypt($ciphertext, $bobKey, $aliceKey->extractPublicKey()));
     }
 
     /**
@@ -119,9 +119,9 @@ abstract class AbstractEncryptionTest extends TestCase
         $aliceKey = $cipher->generateKey();
         $bobKey = $cipher->generateKey();
 
-        $ciphertext = $cipher->encryptFor($input = 'input', $this->createPublicKey($bobKey));
+        $ciphertext = $cipher->encryptFor($input = 'input', $bobKey->extractPublicKey());
         $this->expectException(DecryptionException::class);
-        $this->assertEquals($input, $cipher->decrypt($ciphertext, $bobKey->createKeypair($aliceKey)));
+        $this->assertEquals($input, $cipher->decrypt($ciphertext, $bobKey, $aliceKey->extractPublicKey()));
     }
 
     /**
@@ -133,8 +133,8 @@ abstract class AbstractEncryptionTest extends TestCase
         $aliceKey = $cipher->generateKey();
         $bobKey = $cipher->generateKey();
 
-        $ciphertext = $cipher->encryptForAndSign($input = 'input', $aliceKey->createKeypair($bobKey));
-        $this->expectException(InvalidKeyException::class);
+        $ciphertext = $cipher->encryptForAndSign($input = 'input', $bobKey->extractPublicKey(), $aliceKey);
+        $this->expectException(SignatureVerificationRequiredException::class);
         $this->assertEquals($input, $cipher->decrypt($ciphertext, $this->createPrivateKey($bobKey)));
     }
 
@@ -148,9 +148,9 @@ abstract class AbstractEncryptionTest extends TestCase
         $bobKey = $cipher->generateKey();
         $eveKey = $cipher->generateKey();
 
-        $ciphertext = $cipher->encryptForAndSign('input', $eveKey->createKeypair($bobKey));
+        $ciphertext = $cipher->encryptForAndSign('input', $bobKey, $eveKey);
         $this->expectException(DecryptionException::class);
-        $cipher->decrypt($ciphertext, $bobKey->createKeypair($aliceKey));
+        $cipher->decrypt($ciphertext, $bobKey, $aliceKey->extractPublicKey());
     }
 
     /**
@@ -163,14 +163,12 @@ abstract class AbstractEncryptionTest extends TestCase
         $bobKey = $cipher->generateKey();
         $eveKey = $cipher->generateKey();
 
-        $ciphertext = $cipher->encryptForAndSign('input', $aliceKey->createKeypair($bobKey));
+        $ciphertext = $cipher->encryptForAndSign('input', $bobKey, $aliceKey);
         $this->expectException(DecryptionException::class);
-        $cipher->decrypt($ciphertext, $eveKey->createKeypair($aliceKey));
+        $cipher->decrypt($ciphertext, $eveKey, $aliceKey->extractPublicKey());
     }
 
     abstract protected function getEncryption(): EncryptionInterface;
-
-    abstract protected function createPublicKey(KeyInterface $key): KeyInterface;
 
     abstract protected function createPrivateKey(KeyInterface $key): KeyInterface;
 }

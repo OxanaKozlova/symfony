@@ -19,6 +19,7 @@ use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
 use Symfony\Component\Encryption\Exception\InvalidKeyException;
+use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnableToVerifySignatureException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
 use Symfony\Component\Encryption\KeyInterface;
@@ -58,7 +59,7 @@ class PhpseclibEncryption implements EncryptionInterface
     public function encrypt(string $message, KeyInterface $myKey): string
     {
         if (!$myKey instanceof PhpseclibKey) {
-            throw new InvalidKeyException();
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
         }
 
         set_error_handler(__CLASS__.'::throwError');
@@ -79,7 +80,7 @@ class PhpseclibEncryption implements EncryptionInterface
     public function encryptFor(string $message, KeyInterface $recipientKey): string
     {
         if (!$recipientKey instanceof PhpseclibKey) {
-            throw new InvalidKeyException();
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
         }
 
         try {
@@ -95,19 +96,20 @@ class PhpseclibEncryption implements EncryptionInterface
         }
     }
 
-    public function encryptForAndSign(string $message, KeyInterface $keypair): string
+    public function encryptForAndSign(string $message, KeyInterface $recipientKey, KeyInterface $senderKey): string
     {
-        if (!$keypair instanceof PhpseclibKey) {
-            throw new InvalidKeyException();
+        if (!$recipientKey instanceof PhpseclibKey || !$senderKey instanceof PhpseclibKey) {
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
         }
+
         try {
             $rsa = new RSA();
-            $rsa->loadKey($keypair->getPublicKey());
+            $rsa->loadKey($recipientKey->getPublicKey());
             $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
             $ciphertext = $rsa->encrypt($message);
 
             // Load private key after encryption
-            $rsa->loadKey($keypair->getPublicKey());
+            $rsa->loadKey($senderKey->getPrivateKey());
             $rsa->setSignatureMode(RSA::SIGNATURE_PSS);
             $headers['signature'] = base64_encode($rsa->sign($ciphertext));
 
@@ -119,16 +121,20 @@ class PhpseclibEncryption implements EncryptionInterface
         }
     }
 
-    public function decrypt(string $message, KeyInterface $key): string
+    public function decrypt(string $message, KeyInterface $key, KeyInterface $senderPublicKey = null): string
     {
         if (!$key instanceof PhpseclibKey) {
-            throw new InvalidKeyException();
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
         }
 
         $ciphertext = Ciphertext::parse($message);
         $algorithm = $ciphertext->getAlgorithm();
         $payload = $ciphertext->getPayload();
         $nonce = $ciphertext->getNonce();
+
+        if (null !== $senderPublicKey && 'RSA-OAEP-PSS' !== $algorithm) {
+            throw new UnableToVerifySignatureException();
+        }
 
         set_error_handler(__CLASS__.'::throwError');
         try {
@@ -140,7 +146,11 @@ class PhpseclibEncryption implements EncryptionInterface
             } elseif ('RSA-OAEP' === $algorithm || 'RSA-OAEP-PSS' === $algorithm) {
                 $rsa = new RSA();
                 if ('RSA-OAEP-PSS' === $algorithm) {
-                    $rsa->loadKey($key->getPublicKey());
+                    if (null === $senderPublicKey) {
+                        throw new SignatureVerificationRequiredException();
+                    }
+
+                    $rsa->loadKey($senderPublicKey->getPublicKey());
                     $verify = $rsa->verify($payload, base64_decode($ciphertext->getHeader('signature')));
                     if (!$verify) {
                         throw new UnableToVerifySignatureException();

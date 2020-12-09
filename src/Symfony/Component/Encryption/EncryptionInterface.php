@@ -13,6 +13,7 @@ namespace Symfony\Component\Encryption;
 
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
+use Symfony\Component\Encryption\Exception\InvalidKeyException;
 
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
@@ -58,6 +59,7 @@ interface EncryptionInterface
      * @return string the output
      *
      * @throws EncryptionException
+     * @throws InvalidKeyException
      */
     public function encrypt(string $message, KeyInterface $myKey): string;
 
@@ -76,7 +78,7 @@ interface EncryptionInterface
      * <code>
      *     // Bob:
      *     $bobKey = $encryption->generateKey();
-     *     $bobPublicOnly = $bobKey->createPublicKey();
+     *     $bobPublicOnly = $bobKey->extractPublicKey();
      *     // Bob sends $bobPublicOnly to Alice
      *
      *     // Alice:
@@ -93,6 +95,7 @@ interface EncryptionInterface
      * @return string the output
      *
      * @throws EncryptionException
+     * @throws InvalidKeyException
      */
     public function encryptFor(string $message, KeyInterface $recipientKey): string;
 
@@ -111,17 +114,16 @@ interface EncryptionInterface
      * <code>
      *     // Alice:
      *     $aliceKey = $encryption->generateKey();
-     *     $alicePublicOnly = $aliceKey->createPublicKey();
+     *     $alicePublicOnly = $aliceKey->extractPublicKey();
      *     // Alice sends $alicePublicOnly to Bob
      *
      *     // Bob:
      *     $bobKey = $encryption->generateKey();
-     *     $bobPublicOnly = $bobKey->createPublicKey();
+     *     $bobPublicOnly = $bobKey->extractPublicKey();
      *     // Bob sends $bobPublicOnly to Alice
      *
      *     // Alice:
-     *     $keypairForSending = $aliceKey->createKeypair($bobPublicOnly);
-     *     $ciphertext = $encryption->encryptForAndSign('input', $keypairForSending);
+     *     $ciphertext = $encryption->encryptForAndSign('input', $bobPublicOnly, $aliceKey);
      *     // Alice sends $ciphertext to Bob
      *
      *     // Bob:
@@ -129,21 +131,26 @@ interface EncryptionInterface
      *     $message = $encryption->decrypt($ciphertext, $keypairForReceiving);
      * </code>
      *
-     * @param string       $message plain text version of the message
-     * @param KeyInterface $keypair A key with a public key of the recipient and a private key of the sender
+     * @param string       $message      plain text version of the message
+     * @param KeyInterface $recipientKey A public key of the recipient
+     * @param KeyInterface $senderKey    A private key of the sender
      *
      * @return string the output
      *
      * @throws EncryptionException
+     * @throws InvalidKeyException
      */
-    public function encryptForAndSign(string $message, KeyInterface $keypair): string;
+    public function encryptForAndSign(string $message, KeyInterface $recipientKey, KeyInterface $senderKey): string;
 
     /**
      * Get a plain text version of the encrypted message.
      *
-     * @param string $message encrypted version of the message
+     * @param string       $message         encrypted version of the message
+     * @param KeyInterface $key             The key of the recipient. It should contain a private key
+     * @param KeyInterface $senderPublicKey a public key to the sender to verify the signature
      *
      * @throws DecryptionException
+     * @throws InvalidKeyException
      */
-    public function decrypt(string $message, KeyInterface $key): string;
+    public function decrypt(string $message, KeyInterface $key, KeyInterface $senderPublicKey = null): string;
 }

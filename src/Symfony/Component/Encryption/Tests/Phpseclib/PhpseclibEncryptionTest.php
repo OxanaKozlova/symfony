@@ -32,11 +32,6 @@ class PhpseclibEncryptionTest extends AbstractEncryptionTest
         return new PhpseclibEncryption();
     }
 
-    protected function createPublicKey(KeyInterface $key): KeyInterface
-    {
-        return PhpseclibKey::fromPublicKey($key->getPublicKey());
-    }
-
     protected function createPrivateKey(KeyInterface $key): KeyInterface
     {
         return PhpseclibKey::fromPrivateKey($key->getPrivateKey());
