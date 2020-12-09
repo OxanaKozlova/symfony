@@ -64,11 +64,11 @@ class PhpseclibEncryption implements EncryptionInterface
         set_error_handler(__CLASS__.'::throwError');
 
         try {
-            $aes = new AES();
+            $aes = new AES(AES::MODE_CBC);
             $aes->setPassword($myKey->getSecret());
             $aes->setIV($nonce = Random::string($aes->getBlockLength() >> 3));
 
-            return Ciphertext::create('RSAES-PKCS1-v1_5', $aes->encrypt($message), $nonce)->getString();
+            return Ciphertext::create('AES-CBC', $aes->encrypt($message), $nonce)->getString();
         } catch (\ErrorException $exception) {
             throw new EncryptionException(null, $exception);
         } finally {
@@ -132,8 +132,8 @@ class PhpseclibEncryption implements EncryptionInterface
 
         set_error_handler(__CLASS__.'::throwError');
         try {
-            if ('RSAES-PKCS1-v1_5' === $algorithm) {
-                $aes = new AES();
+            if ('AES-CBC' === $algorithm) {
+                $aes = new AES(AES::MODE_CBC);
                 $aes->setPassword($key->getSecret());
                 $aes->setIV($nonce);
                 $output = $aes->decrypt($payload);
