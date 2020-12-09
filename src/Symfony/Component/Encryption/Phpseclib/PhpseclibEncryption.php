@@ -18,13 +18,10 @@ use Symfony\Component\Encryption\Ciphertext;
 use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Encryption\Exception\DecryptionException;
 use Symfony\Component\Encryption\Exception\EncryptionException;
-use Symfony\Component\Encryption\Exception\InvalidArgumentException;
 use Symfony\Component\Encryption\Exception\InvalidKeyException;
-use Symfony\Component\Encryption\Exception\SignatureVerificationRequiredException;
 use Symfony\Component\Encryption\Exception\UnableToVerifySignatureException;
 use Symfony\Component\Encryption\Exception\UnsupportedAlgorithmException;
 use Symfony\Component\Encryption\KeyInterface;
-use Symfony\Component\Encryption\Sodium\SodiumKey;
 
 if (!class_exists(RSA::class)) {
     throw new \LogicException('You cannot use "Symfony\Component\Security\Core\Encryption\PhpseclibEncryption" as the "phpseclib/phpseclib:2.x" package is not installed. Try running "composer require phpseclib/phpseclib:^2".');
@@ -48,7 +45,7 @@ class PhpseclibEncryption implements EncryptionInterface
             throw new EncryptionException('Failed to generate RSA keypair.');
         }
 
-        if ($secret === null) {
+        if (null === $secret) {
             $secret = random_bytes(32);
         }
 
@@ -75,7 +72,6 @@ class PhpseclibEncryption implements EncryptionInterface
             restore_error_handler();
         }
     }
-
 
     public function encryptFor(string $message, KeyInterface $recipientKey): string
     {
@@ -107,7 +103,7 @@ class PhpseclibEncryption implements EncryptionInterface
             $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
             $ciphertext = $rsa->encrypt($message);
 
-                // Load private key after encryption
+            // Load private key after encryption
             $rsa->loadKey($keypair->getPublicKey());
             $rsa->setSignatureMode(RSA::SIGNATURE_PSS);
             $headers['signature'] = base64_encode($rsa->sign($ciphertext));

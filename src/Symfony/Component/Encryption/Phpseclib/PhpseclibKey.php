@@ -134,5 +134,4 @@ final class PhpseclibKey implements KeyInterface
 
         return $this->publicKey;
     }
-
 }
