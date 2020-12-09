@@ -14,6 +14,11 @@ namespace Symfony\Component\Encryption\Sodium;
 use Symfony\Component\Encryption\Exception\InvalidKeyException;
 use Symfony\Component\Encryption\KeyInterface;
 
+/**
+ * @internal
+ *
+ * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ */
 final class SodiumKey implements KeyInterface
 {
     /**
@@ -38,9 +43,6 @@ final class SodiumKey implements KeyInterface
      */
     private $keypair;
 
-    /**
-     * @internal
-     */
     public static function create(string $secret, string $keypair): self
     {
         $key = self::fromSecret($secret);

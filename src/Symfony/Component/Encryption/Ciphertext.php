@@ -41,7 +41,7 @@ class Ciphertext
     private $nonce;
 
     /**
-     * @var array additional headers
+     * @var array<string, string> additional headers
      */
     private $headers = [];
 

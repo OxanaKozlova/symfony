@@ -14,6 +14,11 @@ namespace Symfony\Component\Encryption\Phpseclib;
 use Symfony\Component\Encryption\Exception\InvalidKeyException;
 use Symfony\Component\Encryption\KeyInterface;
 
+/**
+ * @internal
+ *
+ * @author Tobias Nyholm <tobias.nyholm@gmail.com>
+ */
 final class PhpseclibKey implements KeyInterface
 {
     /**
@@ -31,23 +36,12 @@ final class PhpseclibKey implements KeyInterface
      */
     private $publicKey;
 
-    /**
-     * @internal
-     */
     public static function create(string $secret, string $private, string $public): self
     {
         $key = new self();
         $key->secret = $secret;
         $key->publicKey = $public;
         $key->privateKey = $private;
-
-        return $key;
-    }
-
-    public static function fromSecret(string $secret): self
-    {
-        $key = new self();
-        $key->secret = $secret;
 
         return $key;
     }
@@ -73,14 +67,6 @@ final class PhpseclibKey implements KeyInterface
     {
         $key = new self();
         $key->publicKey = $publicKey;
-
-        return $key;
-    }
-
-    public static function fromKeypair(string $keypair): self
-    {
-        $key = new self();
-        $key->keypair = $keypair;
 
         return $key;
     }

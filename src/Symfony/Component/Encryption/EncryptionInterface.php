@@ -68,7 +68,7 @@ interface EncryptionInterface
      * It is safe to share your public key, but the private key should always be
      * kept a secret.
      *
-     * When Alice and Bob wants to communicate they share their public keys with
+     * When Alice and Bob wants to communicate securely, they share their public keys with
      * each other. Alice will encrypt a message with Bob's public key. When Bob
      * receives the message, he will decrypt it with his private key.
      *
@@ -102,9 +102,9 @@ interface EncryptionInterface
      *
      * Asymmetric encryption uses a "key pair" ie a public key and a private key.
      * It is safe to share your public key, but the private key should always be
-     * kept a secret.
+     * kept secret.
      *
-     * When Alice and Bob wants to communicate they share their public keys with
+     * When Alice and Bob wants to communicate securely, they share their public keys with
      * each other. Alice will encrypt a message with keypair [ alice_private, bob_public ].
      * When Bob receives the message, he will decrypt it with keypair [ bob_private, alice_public ].
      *
