@@ -81,7 +81,7 @@ final class PhpseclibKey implements KeyInterface
         return serialize($this->__serialize());
     }
 
-    final public function unserialize($serialized)
+    public function unserialize($serialized)
     {
         $this->__unserialize(unserialize($serialized));
     }
