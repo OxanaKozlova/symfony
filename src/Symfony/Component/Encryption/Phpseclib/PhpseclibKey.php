@@ -76,17 +76,24 @@ final class PhpseclibKey implements KeyInterface
         return self::fromPublicKey($this->getPublicKey());
     }
 
-    public function toString(): string
+    public function serialize()
     {
-        return serialize([$this->secret, $this->privateKey, $this->publicKey]);
+        return serialize($this->__serialize());
     }
 
-    public function fromString(string $string): KeyInterface
+    final public function unserialize($serialized)
     {
-        $key = new self();
-        [$key->secret, $key->privateKey, $key->publicKey] = unserialize($string);
+        $this->__unserialize(unserialize($serialized));
+    }
 
-        return $key;
+    public function __serialize(): array
+    {
+        return [$this->secret, $this->privateKey, $this->publicKey];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [$this->secret, $this->privateKey, $this->publicKey] = $data;
     }
 
     public function createKeypair(KeyInterface $publicKey): KeyInterface

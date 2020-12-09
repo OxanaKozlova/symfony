@@ -21,18 +21,8 @@ namespace Symfony\Component\Encryption;
  *
  * @experimental in 5.3
  */
-interface KeyInterface
+interface KeyInterface extends \Serializable
 {
-    /**
-     * Returns a string to be stored in a safe place.
-     */
-    public function toString(): string;
-
-    /**
-     * Creates a Key from stored data.
-     */
-    public function fromString(string $string): self;
-
     /**
      * Creates a new KeyInterface object.
      *
@@ -40,8 +30,8 @@ interface KeyInterface
      * Key and pair it with Bob's public key.
      *
      * <code>
-     *     $aliceKey = SodiumKey::fromString('...');
-     *     $bobKey = SodiumKey::fromString('...');
+     *     $aliceKey = $encryption->generateKey();
+     *     $bobKey = $encryption->generateKey();
      *     $keypair = $aliceKey->createKeypair($bobKey);
      * </code>
      */

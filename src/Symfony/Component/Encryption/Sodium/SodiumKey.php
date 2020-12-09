@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Encryption\Sodium;
 
+use Exception;
 use Symfony\Component\Encryption\Exception\InvalidKeyException;
 use Symfony\Component\Encryption\KeyInterface;
 
@@ -115,17 +116,24 @@ final class SodiumKey implements KeyInterface
         return self::fromPublicKey($this->getPublicKey());
     }
 
-    public function toString(): string
+    public function serialize()
     {
-        return serialize([$this->secret, $this->privateKey, $this->publicKey]);
+        return serialize($this->__serialize());
     }
 
-    public function fromString(string $string): KeyInterface
+    final public function unserialize($serialized)
     {
-        $key = new self();
-        [$key->secret, $key->privateKey, $key->publicKey] = unserialize($string);
+        $this->__unserialize(unserialize($serialized));
+    }
 
-        return $key;
+    public function __serialize(): array
+    {
+        return [$this->secret, $this->privateKey, $this->publicKey, $this->keypair];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [$this->secret, $this->privateKey, $this->publicKey, $this->keypair] = $data;
     }
 
     public function getSecret(): string
