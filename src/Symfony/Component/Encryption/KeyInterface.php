@@ -12,10 +12,10 @@
 namespace Symfony\Component\Encryption;
 
 /**
- * A Key for a specific user and specific Encryption implementation. Keys cannot
+ * A key for a specific user and specific Encryption implementation. Keys cannot
  * be shared between Encryption implementations.
  *
- * A Key is always serializable.
+ * A key is always serializable.
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  *
@@ -27,7 +27,7 @@ interface KeyInterface extends \Serializable
      * Creates a new KeyInterface object.
      *
      * When Alice wants to send and sign a message to Bob. She takes her private
-     * Key and pair it with Bob's public key.
+     * key and pair it with Bob's public key.
      *
      * <code>
      *     $aliceKey = $encryption->generateKey();

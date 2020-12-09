@@ -22,7 +22,7 @@ use Symfony\Component\Encryption\Exception\EncryptionException;
 interface EncryptionInterface
 {
     /**
-     * Generates new a Key to be used with encryption.
+     * Generates new a key to be used with encryption.
      *
      * Don't lose your private key and make sure to keep it a secret.
      *
