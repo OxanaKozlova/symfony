@@ -23,7 +23,7 @@ use Symfony\Component\Encryption\Exception\InvalidKeyException;
  *
  * @experimental in 5.3
  */
-interface KeyInterface extends \Serializable
+interface KeyInterface
 {
     /**
      * Creates a new KeyInterface object.

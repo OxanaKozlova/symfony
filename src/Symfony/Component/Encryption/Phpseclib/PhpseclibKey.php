@@ -19,7 +19,7 @@ use Symfony\Component\Encryption\KeyInterface;
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-final class PhpseclibKey implements KeyInterface
+final class PhpseclibKey implements KeyInterface, \Serializable
 {
     /**
      * @var string|null

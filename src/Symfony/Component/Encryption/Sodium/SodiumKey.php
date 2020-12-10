@@ -19,7 +19,7 @@ use Symfony\Component\Encryption\KeyInterface;
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-final class SodiumKey implements KeyInterface
+final class SodiumKey implements KeyInterface, \Serializable
 {
     /**
      * @var string|null
