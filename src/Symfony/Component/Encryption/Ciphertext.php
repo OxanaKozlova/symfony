@@ -31,6 +31,11 @@ class Ciphertext
     private $algorithm;
 
     /**
+     * @var string
+     */
+    private $version;
+
+    /**
      * @var string the encoded payload
      */
     private $payload;
@@ -49,6 +54,9 @@ class Ciphertext
     {
     }
 
+    /**
+     * @param array<string, string> $headers with ascii keys and values.
+     */
     public static function create(string $algorithm, string $ciphertext, string $nonce, array $headers = []): self
     {
         $model = new self();
@@ -86,13 +94,14 @@ class Ciphertext
         }
 
         $headers = json_decode($headersString, true);
-        if (!\is_array($headers) || !\array_key_exists('alg', $headers)) {
+        if (!\is_array($headers) || !\array_key_exists('alg', $headers) || !\array_key_exists('ver', $headers) || $headers['ver'] !== '1') {
             throw new MalformedCipherException();
         }
 
         $model = new self();
         $model->algorithm = $headers['alg'];
         unset($headers['alg']);
+        unset($headers['ver']);
         $model->headers = $headers;
         $model->nonce = $nonce;
         $model->payload = $payload;
@@ -128,9 +137,20 @@ class Ciphertext
         return $this->algorithm;
     }
 
+    public function getVersion(): string
+    {
+        return $this->version;
+    }
+
     public function getPayload(): string
     {
         return $this->payload;
+    }
+
+
+    public function getNonce(): string
+    {
+        return $this->nonce;
     }
 
     public function hasHeader(string $name): bool
@@ -145,11 +165,6 @@ class Ciphertext
         }
 
         throw new DecryptionException(sprintf('The expected header "%s" is not found.', $name));
-    }
-
-    public function getNonce(): string
-    {
-        return $this->nonce;
     }
 
     private static function base64UrlEncode(string $data): string

@@ -17,19 +17,9 @@ use Symfony\Component\Encryption\Phpseclib\PhpseclibEncryption;
 use Symfony\Component\Encryption\Sodium\SodiumEncryption;
 
 return static function (ContainerConfigurator $container) {
-    $sodiumInstalled = \function_exists('sodium_crypto_box_keypair');
-    $phpseclibInstalled = class_exists(AES::class);
-
     $container->services()
-
         ->set('security.encryption.sodium', SodiumEncryption::class)
-            ->args([
-                '%kernel.secret%',
-            ])
         ->set('security.encryption.phpseclib', PhpseclibEncryption::class)
-            ->args([
-                '%kernel.secret%',
-            ])
-        ->alias(EncryptionInterface::class, $phpseclibInstalled && !$sodiumInstalled ? 'security.encryption.phpseclib' : 'security.encryption.sodium')
+        ->alias(EncryptionInterface::class, 'security.encryption.phpseclib')
         ;
 };

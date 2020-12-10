@@ -54,14 +54,14 @@ interface EncryptionInterface
      * </code>
      *
      * @param string       $message plain text version of the message
-     * @param KeyInterface $myKey   a key that holds a string secret
+     * @param KeyInterface $key     a key that holds a string secret
      *
      * @return string the output
      *
      * @throws EncryptionException
      * @throws InvalidKeyException
      */
-    public function encrypt(string $message, KeyInterface $myKey): string;
+    public function encrypt(string $message, KeyInterface $key): string;
 
     /**
      * Get an encrypted version of the message that only the recipient can read.

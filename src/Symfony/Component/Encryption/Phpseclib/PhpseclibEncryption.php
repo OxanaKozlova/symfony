@@ -56,9 +56,9 @@ class PhpseclibEncryption implements EncryptionInterface
         return PhpseclibKey::create($secret, $key['privatekey'], $key['publickey']);
     }
 
-    public function encrypt(string $message, KeyInterface $myKey): string
+    public function encrypt(string $message, KeyInterface $key): string
     {
-        if (!$myKey instanceof PhpseclibKey) {
+        if (!$key instanceof PhpseclibKey) {
             throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
         }
 
@@ -66,7 +66,7 @@ class PhpseclibEncryption implements EncryptionInterface
 
         try {
             $aes = new AES(AES::MODE_CBC);
-            $aes->setPassword($myKey->getSecret());
+            $aes->setPassword($key->getSecret());
             $aes->setIV($nonce = Random::string($aes->getBlockLength() >> 3));
 
             return Ciphertext::create('AES-CBC', $aes->encrypt($message), $nonce)->getString();

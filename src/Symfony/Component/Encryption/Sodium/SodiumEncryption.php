@@ -35,15 +35,15 @@ final class SodiumEncryption implements EncryptionInterface
         return SodiumKey::create($secret ?? sodium_crypto_secretbox_keygen(), sodium_crypto_box_keypair());
     }
 
-    public function encrypt(string $message, KeyInterface $myKey): string
+    public function encrypt(string $message, KeyInterface $key): string
     {
-        if (!$myKey instanceof SodiumKey) {
+        if (!$key instanceof SodiumKey) {
             throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, SodiumKey::class));
         }
 
         $nonce = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         try {
-            $ciphertext = sodium_crypto_secretbox($message, $nonce, $myKey->getSecret());
+            $ciphertext = sodium_crypto_secretbox($message, $nonce, $key->getSecret());
         } catch (\SodiumException $exception) {
             throw new EncryptionException('Failed to encrypt message.', $exception);
         }
