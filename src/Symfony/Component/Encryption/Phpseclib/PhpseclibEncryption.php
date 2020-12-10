@@ -59,7 +59,7 @@ class PhpseclibEncryption implements EncryptionInterface
     public function encrypt(string $message, KeyInterface $key): string
     {
         if (!$key instanceof PhpseclibKey) {
-            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s".', self::class, PhpseclibKey::class));
         }
 
         set_error_handler(__CLASS__.'::throwError');
@@ -80,7 +80,7 @@ class PhpseclibEncryption implements EncryptionInterface
     public function encryptFor(string $message, KeyInterface $recipientKey): string
     {
         if (!$recipientKey instanceof PhpseclibKey) {
-            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s".', self::class, PhpseclibKey::class));
         }
 
         try {
@@ -99,7 +99,7 @@ class PhpseclibEncryption implements EncryptionInterface
     public function encryptForAndSign(string $message, KeyInterface $recipientKey, KeyInterface $senderKey): string
     {
         if (!$recipientKey instanceof PhpseclibKey || !$senderKey instanceof PhpseclibKey) {
-            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s".', self::class, PhpseclibKey::class));
         }
 
         try {
@@ -124,7 +124,7 @@ class PhpseclibEncryption implements EncryptionInterface
     public function decrypt(string $message, KeyInterface $key, KeyInterface $senderPublicKey = null): string
     {
         if (!$key instanceof PhpseclibKey) {
-            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, PhpseclibKey::class));
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s".', self::class, PhpseclibKey::class));
         }
 
         $ciphertext = Ciphertext::parse($message);

@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use phpseclib\Crypt\AES;
 use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Encryption\Phpseclib\PhpseclibEncryption;
 use Symfony\Component\Encryption\Sodium\SodiumEncryption;

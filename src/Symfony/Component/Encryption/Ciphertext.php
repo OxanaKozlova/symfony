@@ -55,7 +55,7 @@ class Ciphertext
     }
 
     /**
-     * @param array<string, string> $headers with ascii keys and values.
+     * @param array<string, string> $headers with ascii keys and values
      */
     public static function create(string $algorithm, string $ciphertext, string $nonce, array $headers = []): self
     {
@@ -94,7 +94,7 @@ class Ciphertext
         }
 
         $headers = json_decode($headersString, true);
-        if (!\is_array($headers) || !\array_key_exists('alg', $headers) || !\array_key_exists('ver', $headers) || $headers['ver'] !== '1') {
+        if (!\is_array($headers) || !\array_key_exists('alg', $headers) || !\array_key_exists('ver', $headers) || '1' !== $headers['ver']) {
             throw new MalformedCipherException();
         }
 
@@ -146,7 +146,6 @@ class Ciphertext
     {
         return $this->payload;
     }
-
 
     public function getNonce(): string
     {

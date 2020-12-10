@@ -38,7 +38,7 @@ final class SodiumEncryption implements EncryptionInterface
     public function encrypt(string $message, KeyInterface $key): string
     {
         if (!$key instanceof SodiumKey) {
-            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, SodiumKey::class));
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s".', self::class, SodiumKey::class));
         }
 
         $nonce = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
@@ -54,7 +54,7 @@ final class SodiumEncryption implements EncryptionInterface
     public function encryptFor(string $message, KeyInterface $recipientKey): string
     {
         if (!$recipientKey instanceof SodiumKey) {
-            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, SodiumKey::class));
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s".', self::class, SodiumKey::class));
         }
 
         try {
@@ -69,7 +69,7 @@ final class SodiumEncryption implements EncryptionInterface
     public function encryptForAndSign(string $message, KeyInterface $recipientKey, KeyInterface $senderKey): string
     {
         if (!$recipientKey instanceof SodiumKey || !$senderKey instanceof SodiumKey) {
-            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, SodiumKey::class));
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s".', self::class, SodiumKey::class));
         }
 
         try {
@@ -86,7 +86,7 @@ final class SodiumEncryption implements EncryptionInterface
     public function decrypt(string $message, KeyInterface $key, KeyInterface $senderPublicKey = null): string
     {
         if (!$key instanceof SodiumKey) {
-            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s"', self::class, SodiumKey::class));
+            throw new InvalidKeyException(sprintf('Class "%s" will only accept key objects of class "%s".', self::class, SodiumKey::class));
         }
 
         $ciphertext = Ciphertext::parse($message);
