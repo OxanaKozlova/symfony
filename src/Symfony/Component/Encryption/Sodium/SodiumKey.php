@@ -59,14 +59,11 @@ final class SodiumKey implements KeyInterface, \Serializable
     public static function fromSecret(string $secret): self
     {
         $key = new self();
-
-        $secretLength = \strlen($secret);
-        if ($secretLength > \SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            $key->secret = substr($secret, 0, \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
-        } elseif ($secretLength < \SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            $key->secret = sodium_pad($secret, \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
-        } else {
+        if (\strlen($secret) === \SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
             $key->secret = $secret;
+        } else {
+            // Trim the key to a good size
+            $key->secret = substr(sha1($secret), 0, \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
         }
 
         return $key;
