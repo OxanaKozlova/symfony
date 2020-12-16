@@ -19,12 +19,12 @@ class SodiumKeyTest extends TestCase
     public function testKeySize()
     {
         // Secret is longer than \SODIUM_CRYPTO_SECRETBOX_KEYBYTES
-        $secret= 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-        $keyA = SodiumKey::fromSecret($secret . 'v1');
-        $keyB = SodiumKey::fromSecret($secret . 'v2');
+        $secret = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        $keyA = SodiumKey::fromSecret($secret.'v1');
+        $keyB = SodiumKey::fromSecret($secret.'v2');
 
         $this->assertNotEquals($keyA->getSecret(), $keyB->getSecret());
-        $this->assertTrue(strlen($keyA->getSecret()) === \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
-        $this->assertTrue(strlen($keyB->getSecret()) === \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
+        $this->assertTrue(\SODIUM_CRYPTO_SECRETBOX_KEYBYTES === \strlen($keyA->getSecret()));
+        $this->assertTrue(\SODIUM_CRYPTO_SECRETBOX_KEYBYTES === \strlen($keyB->getSecret()));
     }
 }
