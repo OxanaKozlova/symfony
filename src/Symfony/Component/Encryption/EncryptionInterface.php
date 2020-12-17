@@ -90,7 +90,7 @@ interface EncryptionInterface
      * </code>
      *
      * @param string       $message      plain text version of the message
-     * @param KeyInterface $recipientKey A key with a public key of the recipient
+     * @param KeyInterface $recipientKey key with a public key of the recipient
      *
      * @return string the output
      *
@@ -103,7 +103,7 @@ interface EncryptionInterface
      * Get an encrypted version of the message that only the recipient can read.
      * The recipient can also verify who sent the message.
      *
-     * Asymmetric encryption uses a "key pair" ie a public key and a private key.
+     * Asymmetric encryption uses a "key pair" i.e. a public key and a private key.
      * It is safe to share your public key, but the private key should always be
      * kept secret.
      *
@@ -132,8 +132,8 @@ interface EncryptionInterface
      * </code>
      *
      * @param string       $message      plain text version of the message
-     * @param KeyInterface $recipientKey A public key of the recipient
-     * @param KeyInterface $senderKey    A private key of the sender
+     * @param KeyInterface $recipientKey public key of the recipient
+     * @param KeyInterface $senderKey    private key of the sender
      *
      * @return string the output
      *
@@ -146,7 +146,7 @@ interface EncryptionInterface
      * Get a plain text version of the encrypted message.
      *
      * @param string       $message         encrypted version of the message
-     * @param KeyInterface $key             The key of the recipient. It should contain a private key
+     * @param KeyInterface $key             key of the recipient, it should contain a private key
      * @param KeyInterface $senderPublicKey a public key to the sender to verify the signature
      *
      * @throws DecryptionException

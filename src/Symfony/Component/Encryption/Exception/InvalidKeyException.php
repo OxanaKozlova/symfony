@@ -20,7 +20,7 @@ namespace Symfony\Component\Encryption\Exception;
  */
 class InvalidKeyException extends \RuntimeException implements ExceptionInterface
 {
-    public function __construct($message = null, \Throwable $previous = null)
+    public function __construct(string $message = null, \Throwable $previous = null)
     {
         parent::__construct($message ?? 'This key is not valid.', 0, $previous);
     }
