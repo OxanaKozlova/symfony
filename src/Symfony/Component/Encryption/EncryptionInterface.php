@@ -27,15 +27,15 @@ interface EncryptionInterface
      *
      * Don't lose your private key and make sure to keep it a secret.
      *
-     * @param string|null $secret to be used in symmetric encryption. A new secret
-     *                            is generated if none is provided.
+     * @param string|null $secret A secret to be used in symmetric encryption. A
+     *                            new secret is generated if none is provided.
      *
      * @throws EncryptionException
      */
     public function generateKey(string $secret = null): KeyInterface;
 
     /**
-     * Get an encrypted version of the message.
+     * Gets an encrypted version of the message.
      *
      * Symmetric encryption uses the same key to encrypt and decrypt a message.
      * The key should be kept safe and should not be exposed to the public. Symmetric
@@ -53,10 +53,10 @@ interface EncryptionInterface
      *     $message = $encryption->decrypt($ciphertext, $key);
      * </code>
      *
-     * @param string       $message plain text version of the message
-     * @param KeyInterface $key     a key that holds a string secret
+     * @param string       $message Plain text version of the message
+     * @param KeyInterface $key     A key that holds a string secret
      *
-     * @return string the output
+     * @return string Output formatted by Ciphertext
      *
      * @throws EncryptionException
      * @throws InvalidKeyException
@@ -64,7 +64,7 @@ interface EncryptionInterface
     public function encrypt(string $message, KeyInterface $key): string;
 
     /**
-     * Get an encrypted version of the message that only the recipient can read.
+     * Gets an encrypted version of the message that only the recipient can read.
      *
      * Asymmetric encryption uses a "key pair" ie a public key and a private key.
      * It is safe to share your public key, but the private key should always be
@@ -89,10 +89,10 @@ interface EncryptionInterface
      *     $message = $encryption->decrypt($ciphertext, $bobKey);
      * </code>
      *
-     * @param string       $message      plain text version of the message
-     * @param KeyInterface $recipientKey key with a public key of the recipient
+     * @param string       $message      Plain text version of the message
+     * @param KeyInterface $recipientKey Key with a public key of the recipient
      *
-     * @return string the output
+     * @return string Output formatted by Ciphertext
      *
      * @throws EncryptionException
      * @throws InvalidKeyException
@@ -100,7 +100,7 @@ interface EncryptionInterface
     public function encryptFor(string $message, KeyInterface $recipientKey): string;
 
     /**
-     * Get an encrypted version of the message that only the recipient can read.
+     * Gets an encrypted version of the message that only the recipient can read.
      * The recipient can also verify who sent the message.
      *
      * Asymmetric encryption uses a "key pair" i.e. a public key and a private key.
@@ -131,11 +131,11 @@ interface EncryptionInterface
      *     $message = $encryption->decrypt($ciphertext, $keypairForReceiving);
      * </code>
      *
-     * @param string       $message      plain text version of the message
-     * @param KeyInterface $recipientKey public key of the recipient
-     * @param KeyInterface $senderKey    private key of the sender
+     * @param string       $message      Plain text version of the message
+     * @param KeyInterface $recipientKey Public key of the recipient
+     * @param KeyInterface $senderKey    Private key of the sender
      *
-     * @return string the output
+     * @return string Output formatted by Ciphertext
      *
      * @throws EncryptionException
      * @throws InvalidKeyException
@@ -143,11 +143,11 @@ interface EncryptionInterface
     public function encryptForAndSign(string $message, KeyInterface $recipientKey, KeyInterface $senderKey): string;
 
     /**
-     * Get a plain text version of the encrypted message.
+     * Gets a plain text version of the encrypted message.
      *
-     * @param string       $message         encrypted version of the message
-     * @param KeyInterface $key             key of the recipient, it should contain a private key
-     * @param KeyInterface $senderPublicKey a public key to the sender to verify the signature
+     * @param string       $message         Encrypted version of the message
+     * @param KeyInterface $key             Key of the recipient, it should contain a private key
+     * @param KeyInterface $senderPublicKey A public key to the sender to verify the signature
      *
      * @throws DecryptionException
      * @throws InvalidKeyException

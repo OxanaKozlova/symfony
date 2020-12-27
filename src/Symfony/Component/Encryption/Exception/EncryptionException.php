@@ -20,7 +20,7 @@ namespace Symfony\Component\Encryption\Exception;
  */
 class EncryptionException extends \RuntimeException implements ExceptionInterface
 {
-    public function __construct($message = null, \Throwable $previous = null)
+    public function __construct(string $message = null, \Throwable $previous = null)
     {
         parent::__construct($message ?? 'Could not encrypt the message.', 0, $previous);
     }

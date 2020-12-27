@@ -34,7 +34,7 @@ abstract class AbstractEncryptionTest extends TestCase
         $ciphertext = $cipher->encrypt($message, $key);
 
         $key2 = $cipher->generateKey('s3cr3t');
-        $this->assertEquals($message, $cipher->decrypt($ciphertext, $key2));
+        $this->assertSame($message, $cipher->decrypt($ciphertext, $key2));
     }
 
     public function testEncrypt()
@@ -57,8 +57,8 @@ abstract class AbstractEncryptionTest extends TestCase
         $cipher = $this->getEncryption();
         $key = $cipher->generateKey();
 
-        $this->assertEquals($input = '', $cipher->decrypt($cipher->encrypt($input, $key), $key));
-        $this->assertEquals($input = 'foobar', $cipher->decrypt($cipher->encrypt($input, $key), $key));
+        $this->assertSame($input = '', $cipher->decrypt($cipher->encrypt($input, $key), $key));
+        $this->assertSame($input = 'foobar', $cipher->decrypt($cipher->encrypt($input, $key), $key));
     }
 
     public function testDecryptionThrowsOnMalformedCipher()
@@ -91,8 +91,8 @@ abstract class AbstractEncryptionTest extends TestCase
 
         $message = 'the cake is a lie';
         $ciphertext = $cipher->encryptFor($message, $bobPublic);
-        $this->assertEquals($message, $cipher->decrypt($ciphertext, $bobKey));
-        $this->assertEquals($message, $cipher->decrypt($ciphertext, $this->createPrivateKey($bobKey)));
+        $this->assertSame($message, $cipher->decrypt($ciphertext, $bobKey));
+        $this->assertSame($message, $cipher->decrypt($ciphertext, $this->createPrivateKey($bobKey)));
     }
 
     public function testEncryptForAndSign()
@@ -107,7 +107,7 @@ abstract class AbstractEncryptionTest extends TestCase
 
         $message = 'the cake is a lie';
         $ciphertext = $cipher->encryptForAndSign($message, $bobKey->extractPublicKey(), $aliceKey);
-        $this->assertEquals($message, $cipher->decrypt($ciphertext, $bobKey, $aliceKey->extractPublicKey()));
+        $this->assertSame($message, $cipher->decrypt($ciphertext, $bobKey, $aliceKey->extractPublicKey()));
     }
 
     /**
@@ -121,7 +121,7 @@ abstract class AbstractEncryptionTest extends TestCase
 
         $ciphertext = $cipher->encryptFor($input = 'input', $bobKey->extractPublicKey());
         $this->expectException(DecryptionException::class);
-        $this->assertEquals($input, $cipher->decrypt($ciphertext, $bobKey, $aliceKey->extractPublicKey()));
+        $this->assertSame($input, $cipher->decrypt($ciphertext, $bobKey, $aliceKey->extractPublicKey()));
     }
 
     /**
@@ -135,7 +135,7 @@ abstract class AbstractEncryptionTest extends TestCase
 
         $ciphertext = $cipher->encryptForAndSign($input = 'input', $bobKey->extractPublicKey(), $aliceKey);
         $this->expectException(SignatureVerificationRequiredException::class);
-        $this->assertEquals($input, $cipher->decrypt($ciphertext, $this->createPrivateKey($bobKey)));
+        $this->assertSame($input, $cipher->decrypt($ciphertext, $this->createPrivateKey($bobKey)));
     }
 
     /**

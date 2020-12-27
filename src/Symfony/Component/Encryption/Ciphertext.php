@@ -19,8 +19,6 @@ use Symfony\Component\Encryption\Exception\MalformedCipherException;
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  *
- * @experimental in 5.3
- *
  * @internal
  */
 class Ciphertext

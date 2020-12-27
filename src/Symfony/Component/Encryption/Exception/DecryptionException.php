@@ -20,7 +20,7 @@ namespace Symfony\Component\Encryption\Exception;
  */
 class DecryptionException extends \RuntimeException implements ExceptionInterface
 {
-    public function __construct($message = null, \Throwable $previous = null)
+    public function __construct(string $message = null, \Throwable $previous = null)
     {
         parent::__construct($message ?? 'Could not decrypt the ciphertext.', 0, $previous);
     }

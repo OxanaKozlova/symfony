@@ -19,7 +19,7 @@ use Symfony\Component\Encryption\KeyInterface;
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-final class SodiumKey implements KeyInterface, \Serializable
+final class SodiumKey implements KeyInterface
 {
     /**
      * @var string|null
@@ -105,16 +105,6 @@ final class SodiumKey implements KeyInterface, \Serializable
     public function extractPublicKey(): KeyInterface
     {
         return self::fromPublicKey($this->getPublicKey());
-    }
-
-    public function serialize()
-    {
-        return serialize($this->__serialize());
-    }
-
-    public function unserialize($serialized)
-    {
-        $this->__unserialize(unserialize($serialized));
     }
 
     public function __serialize(): array
