@@ -11,9 +11,9 @@
 
 namespace Symfony\Component\Encryption\Phpseclib;
 
-use phpseclib\Crypt\AES;
-use phpseclib\Crypt\Random;
-use phpseclib\Crypt\RSA;
+use phpseclib3\Crypt\AES;
+use phpseclib3\Crypt\Random;
+use phpseclib3\Crypt\RSA;
 use Symfony\Component\Encryption\Ciphertext;
 use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Encryption\Exception\DecryptionException;
@@ -42,18 +42,12 @@ class PhpseclibEncryption implements EncryptionInterface
 
     public function generateKey(string $secret = null): KeyInterface
     {
-        $rsa = new RSA();
-        $key = $rsa->createKey();
-
-        if ($key['partialkey']) {
-            throw new EncryptionException('Failed to generate RSA keypair.');
-        }
-
+        $key = RSA::createKey();
         if (null === $secret) {
             $secret = random_bytes(32);
         }
 
-        return PhpseclibKey::create($secret, $key['privatekey'], $key['publickey']);
+        return PhpseclibKey::create($secret, $key);
     }
 
     public function encrypt(string $message, KeyInterface $key): string
@@ -65,7 +59,7 @@ class PhpseclibEncryption implements EncryptionInterface
         set_error_handler(__CLASS__.'::throwError');
 
         try {
-            $aes = new AES(AES::MODE_CBC);
+            $aes = new AES('cbc');
             $aes->setPassword($key->getSecret());
             $aes->setIV($nonce = Random::string($aes->getBlockLength() >> 3));
 
@@ -84,11 +78,9 @@ class PhpseclibEncryption implements EncryptionInterface
         }
 
         try {
-            $rsa = new RSA();
-            $rsa->loadKey($recipientKey->getPublicKey());
-            $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
+            $ciphertext = $recipientKey->getPublicKey()->withPadding(RSA::ENCRYPTION_OAEP)->encrypt($message);
 
-            return Ciphertext::create('RSA-OAEP', $rsa->encrypt($message), random_bytes(8))->getString();
+            return Ciphertext::create('RSA-OAEP', $ciphertext, random_bytes(8))->getString();
         } catch (\ErrorException $exception) {
             throw new EncryptionException(null, $exception);
         } finally {
@@ -103,15 +95,9 @@ class PhpseclibEncryption implements EncryptionInterface
         }
 
         try {
-            $rsa = new RSA();
-            $rsa->loadKey($recipientKey->getPublicKey());
-            $rsa->setEncryptionMode(RSA::ENCRYPTION_OAEP);
-            $ciphertext = $rsa->encrypt($message);
-
+            $ciphertext = $recipientKey->getPublicKey()->withPadding(RSA::ENCRYPTION_OAEP)->encrypt($message);
             // Load private key after encryption
-            $rsa->loadKey($senderKey->getPrivateKey());
-            $rsa->setSignatureMode(RSA::SIGNATURE_PSS);
-            $headers['signature'] = base64_encode($rsa->sign($ciphertext));
+            $headers['signature'] = base64_encode($senderKey->getPrivateKey()->withPadding(RSA::SIGNATURE_PSS)->sign($ciphertext));
 
             return Ciphertext::create('RSA-OAEP-PSS', $ciphertext, random_bytes(8), $headers)->getString();
         } catch (\ErrorException $exception) {
@@ -139,26 +125,22 @@ class PhpseclibEncryption implements EncryptionInterface
         set_error_handler(__CLASS__.'::throwError');
         try {
             if ('AES-CBC' === $algorithm) {
-                $aes = new AES(AES::MODE_CBC);
+                $aes = new AES('cbc');
                 $aes->setPassword($key->getSecret());
                 $aes->setIV($nonce);
                 $output = $aes->decrypt($payload);
             } elseif ('RSA-OAEP' === $algorithm || 'RSA-OAEP-PSS' === $algorithm) {
-                $rsa = new RSA();
                 if ('RSA-OAEP-PSS' === $algorithm) {
                     if (null === $senderPublicKey) {
                         throw new SignatureVerificationRequiredException();
                     }
 
-                    $rsa->loadKey($senderPublicKey->getPublicKey());
-                    $verify = $rsa->verify($payload, base64_decode($ciphertext->getHeader('signature')));
-                    if (!$verify) {
+                    if (!$senderPublicKey->getPublicKey()->withPadding(RSA::SIGNATURE_PSS)->verify($payload, base64_decode($ciphertext->getHeader('signature')))) {
                         throw new UnableToVerifySignatureException();
                     }
                 }
 
-                $rsa->loadKey($key->getPrivateKey());
-                $output = $rsa->decrypt($payload);
+                $output = $key->getPrivateKey()->withPadding(RSA::ENCRYPTION_OAEP)->decrypt($payload);
             } else {
                 throw new UnsupportedAlgorithmException($algorithm);
             }

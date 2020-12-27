@@ -19,7 +19,7 @@
         "php": ">=7.2.5"
     },
     "require-dev": {
-        "phpseclib/phpseclib": "^2.0.29"
+        "phpseclib/phpseclib": "^3.0"
     },
     "autoload": {
         "psr-4": { "Symfony\\Component\\Encryption\\": "" },

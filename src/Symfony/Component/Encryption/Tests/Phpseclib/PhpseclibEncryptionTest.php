@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Encryption\Tests\Encryption\Phpseclib;
 
-use phpseclib\Crypt\AES;
+use phpseclib3\Crypt\AES;
 use Symfony\Component\Encryption\EncryptionInterface;
 use Symfony\Component\Encryption\KeyInterface;
 use Symfony\Component\Encryption\Phpseclib\PhpseclibEncryption;

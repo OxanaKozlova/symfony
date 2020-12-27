@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Encryption\Phpseclib;
 
+use phpseclib3\Crypt\Common\PrivateKey;
+use phpseclib3\Crypt\Common\PublicKey;
 use Symfony\Component\Encryption\Exception\InvalidKeyException;
 use Symfony\Component\Encryption\KeyInterface;
 
@@ -27,26 +29,25 @@ final class PhpseclibKey implements KeyInterface
     private $secret;
 
     /**
-     * @var string|null
+     * @var PrivateKey|null
      */
     private $privateKey;
 
     /**
-     * @var string|null
+     * @var PublicKey|null
      */
     private $publicKey;
 
-    public static function create(string $secret, string $private, string $public): self
+    public static function create(string $secret, PrivateKey $private): self
     {
         $key = new self();
         $key->secret = $secret;
-        $key->publicKey = $public;
         $key->privateKey = $private;
 
         return $key;
     }
 
-    public static function fromPrivateKey(string $privateKey): self
+    public static function fromPrivateKey(PrivateKey $privateKey): self
     {
         $key = new self();
         $key->privateKey = $privateKey;
@@ -54,16 +55,7 @@ final class PhpseclibKey implements KeyInterface
         return $key;
     }
 
-    public static function fromPrivateAndPublicKeys(string $privateKey, string $publicKey): self
-    {
-        $key = new self();
-        $key->privateKey = $privateKey;
-        $key->publicKey = $publicKey;
-
-        return $key;
-    }
-
-    public static function fromPublicKey(string $publicKey): self
+    public static function fromPublicKey(PublicKey $publicKey): self
     {
         $key = new self();
         $key->publicKey = $publicKey;
@@ -95,7 +87,7 @@ final class PhpseclibKey implements KeyInterface
         return $this->secret;
     }
 
-    public function getPrivateKey(): string
+    public function getPrivateKey(): PrivateKey
     {
         if (null === $this->privateKey) {
             throw new InvalidKeyException('This key does not have a private key.');
@@ -104,12 +96,15 @@ final class PhpseclibKey implements KeyInterface
         return $this->privateKey;
     }
 
-    public function getPublicKey(): string
+    public function getPublicKey(): PublicKey
     {
-        if (null === $this->publicKey) {
+        if (null !== $this->publicKey) {
+            return $this->publicKey;
+        }
+        if (null === $this->privateKey) {
             throw new InvalidKeyException('This key does not have a public key.');
         }
 
-        return $this->publicKey;
+        return $this->privateKey->getPublicKey();
     }
 }
