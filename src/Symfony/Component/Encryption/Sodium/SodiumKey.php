@@ -98,6 +98,8 @@ final class SodiumKey implements KeyInterface
     {
         $key = new self();
         $key->keypair = $keypair;
+        $key->publicKey = sodium_crypto_box_publickey($keypair);
+        $key->privateKey = sodium_crypto_box_secretkey($keypair);
 
         return $key;
     }
