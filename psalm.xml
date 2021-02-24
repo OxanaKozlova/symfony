@@ -13,6 +13,7 @@
         <ignoreFiles>
             <directory name="src/Symfony/*/*/Tests" />
             <directory name="src/Symfony/*/*/*/Tests" />
+            <directory name="src/Symfony/*/*/*/*/Tests" />
             <directory name="src/Symfony/Bridge/PhpUnit" />
             <directory name="vendor" />
         </ignoreFiles>
