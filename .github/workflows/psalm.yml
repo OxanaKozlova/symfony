@@ -13,7 +13,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.0'
-          extensions: "json,couchbase,memcached,mongodb,redis,rdkafka,xsl,ldap"
+          extensions: "json,couchbase,memcached,mongodb,redis,xsl,ldap"
           ini-values: "memory_limit=-1"
           coverage: none
 
