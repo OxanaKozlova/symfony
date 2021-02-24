@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.6.0@77feecb3707bd50378c21ae4d3fe9e320e6cea65">
+<files psalm-version="4.x-dev@">
   <file src="src/Symfony/Bridge/Doctrine/Security/RememberMe/DoctrineTokenProvider.php">
     <UndefinedClass occurrences="1">
       <code>Result</code>
@@ -204,8 +204,7 @@
     </ParentNotFound>
   </file>
   <file src="src/Symfony/Component/Cache/Traits/RedisTrait.php">
-    <UndefinedClass occurrences="6">
-      <code>\RedisSentinel</code>
+    <UndefinedClass occurrences="5">
       <code>new $class($hosts, $params)</code>
       <code>new $class($hosts, array_diff_key($params, self::$defaultConnectionOptions))</code>
       <code>new $class()</code>
@@ -223,21 +222,10 @@
       <code>throw $error;</code>
     </InvalidThrow>
   </file>
-  <file src="src/Symfony/Component/DependencyInjection/Compiler/CheckTypeDeclarationsPass.php">
-    <UndefinedClass occurrences="1">
-      <code>\ReflectionUnionType</code>
-    </UndefinedClass>
-  </file>
   <file src="src/Symfony/Component/DependencyInjection/Compiler/InlineServiceDefinitionsPass.php">
     <UndefinedVariable occurrences="1">
       <code>$id</code>
     </UndefinedVariable>
-  </file>
-  <file src="src/Symfony/Component/DependencyInjection/Compiler/RegisterAutoconfigureAttributesPass.php">
-    <UndefinedClass occurrences="2">
-      <code>\ReflectionAttribute</code>
-      <code>\ReflectionAttribute</code>
-    </UndefinedClass>
   </file>
   <file src="src/Symfony/Component/DependencyInjection/Compiler/RegisterEnvVarProcessorsPass.php">
     <UndefinedClass occurrences="1">
@@ -248,16 +236,6 @@
     <UndefinedClass occurrences="2">
       <code>$autoloader[0]</code>
       <code>LegacyDebugClassLoader</code>
-    </UndefinedClass>
-  </file>
-  <file src="src/Symfony/Component/DependencyInjection/Dumper/Preloader.php">
-    <UndefinedClass occurrences="1">
-      <code>\ReflectionUnionType</code>
-    </UndefinedClass>
-  </file>
-  <file src="src/Symfony/Component/DependencyInjection/LazyProxy/ProxyHelper.php">
-    <UndefinedClass occurrences="1">
-      <code>\ReflectionUnionType</code>
     </UndefinedClass>
   </file>
   <file src="src/Symfony/Component/DomCrawler/Crawler.php">
@@ -424,31 +402,15 @@
       <code>new $e(sprintf('An error has occurred resolving the options of the form "%s": ', get_debug_type($this-&gt;getInnerType())).$e-&gt;getMessage(), $e-&gt;getCode(), $e)</code>
     </UndefinedClass>
   </file>
-  <file src="src/Symfony/Component/HttpClient/CurlHttpClient.php">
-    <UndefinedClass occurrences="2">
-      <code>\CurlMultiHandle</code>
-      <code>\CurlMultiHandle</code>
-    </UndefinedClass>
-  </file>
   <file src="src/Symfony/Component/HttpClient/Internal/AmpBody.php">
     <UndefinedClass occurrences="1">
       <code>new $body($body-&gt;body, $body-&gt;info, $body-&gt;onProgress)</code>
     </UndefinedClass>
   </file>
-  <file src="src/Symfony/Component/HttpClient/Internal/CurlClientState.php">
-    <UndefinedDocblockClass occurrences="1">
-      <code>\CurlMultiHandle|resource</code>
-    </UndefinedDocblockClass>
-  </file>
   <file src="src/Symfony/Component/HttpClient/Response/AsyncResponse.php">
     <ParadoxicalCondition occurrences="1">
       <code>!$r-&gt;stream || !$r-&gt;stream-&gt;valid() || !$r-&gt;stream</code>
     </ParadoxicalCondition>
-  </file>
-  <file src="src/Symfony/Component/HttpClient/Response/CurlResponse.php">
-    <UndefinedDocblockClass occurrences="1">
-      <code>\CurlHandle|resource|string</code>
-    </UndefinedDocblockClass>
   </file>
   <file src="src/Symfony/Component/HttpFoundation/Request.php">
     <ParadoxicalCondition occurrences="1">
@@ -456,20 +418,12 @@
     </ParadoxicalCondition>
   </file>
   <file src="src/Symfony/Component/HttpFoundation/Session/Storage/Handler/MongoDbSessionHandler.php">
-    <UndefinedClass occurrences="15">
+    <UndefinedClass occurrences="7">
       <code>$this-&gt;getCollection()</code>
       <code>$this-&gt;getCollection()</code>
       <code>$this-&gt;getCollection()</code>
       <code>$this-&gt;getCollection()</code>
       <code>$this-&gt;getCollection()</code>
-      <code>\MongoDB\BSON\Binary</code>
-      <code>\MongoDB\BSON\Binary</code>
-      <code>\MongoDB\BSON\UTCDateTime</code>
-      <code>\MongoDB\BSON\UTCDateTime</code>
-      <code>\MongoDB\BSON\UTCDateTime</code>
-      <code>\MongoDB\BSON\UTCDateTime</code>
-      <code>\MongoDB\BSON\UTCDateTime</code>
-      <code>\MongoDB\BSON\UTCDateTime</code>
       <code>\MongoDB\Client</code>
       <code>\MongoDB\Collection</code>
     </UndefinedClass>
@@ -482,11 +436,6 @@
     <UndefinedVariable occurrences="1">
       <code>$collectedLogs</code>
     </UndefinedVariable>
-  </file>
-  <file src="src/Symfony/Component/HttpKernel/ControllerMetadata/ArgumentMetadataFactory.php">
-    <UndefinedClass occurrences="1">
-      <code>\ReflectionAttribute</code>
-    </UndefinedClass>
   </file>
   <file src="src/Symfony/Component/HttpKernel/DataCollector/DumpDataCollector.php">
     <InaccessibleMethod occurrences="6">
@@ -540,22 +489,13 @@
     </TooFewArguments>
   </file>
   <file src="src/Symfony/Component/Lock/Store/MongoDbStore.php">
-    <UndefinedClass occurrences="15">
+    <UndefinedClass occurrences="6">
       <code>$this-&gt;getCollection()</code>
       <code>$this-&gt;getCollection()</code>
       <code>$this-&gt;getCollection()</code>
       <code>$this-&gt;getCollection()</code>
       <code>Client</code>
       <code>Collection</code>
-      <code>ReadPreference</code>
-      <code>ReadPreference</code>
-      <code>ReadPreference</code>
-      <code>ReadPreference</code>
-      <code>UTCDateTime</code>
-      <code>UTCDateTime</code>
-      <code>WriteException</code>
-      <code>WriteException</code>
-      <code>WriteException</code>
     </UndefinedClass>
     <UndefinedDocblockClass occurrences="4">
       <code>Collection|Client|string</code>
@@ -584,11 +524,6 @@
       <code>\ZookeeperException</code>
     </UndefinedClass>
   </file>
-  <file src="src/Symfony/Component/Messenger/Bridge/Doctrine/Tests/Transport/DoctrineIntegrationTest.php">
-    <UndefinedClass occurrences="1">
-      <code>Result</code>
-    </UndefinedClass>
-  </file>
   <file src="src/Symfony/Component/Messenger/Bridge/Doctrine/Transport/Connection.php">
     <UndefinedClass occurrences="4">
       <code>Result</code>
@@ -602,11 +537,6 @@
       <code>RegistryInterface</code>
     </UndefinedClass>
   </file>
-  <file src="src/Symfony/Component/Messenger/DependencyInjection/MessengerPass.php">
-    <UndefinedClass occurrences="1">
-      <code>\ReflectionUnionType</code>
-    </UndefinedClass>
-  </file>
   <file src="src/Symfony/Component/Process/InputStream.php">
     <ParadoxicalCondition occurrences="1">
       <code>!$this-&gt;input</code>
@@ -616,11 +546,6 @@
     <InvalidPassByReference occurrences="1">
       <code>fopen($file, 'w')</code>
     </InvalidPassByReference>
-  </file>
-  <file src="src/Symfony/Component/PropertyInfo/Extractor/ReflectionExtractor.php">
-    <UndefinedClass occurrences="1">
-      <code>\ReflectionUnionType</code>
-    </UndefinedClass>
   </file>
   <file src="src/Symfony/Component/Routing/Loader/Configurator/Traits/AddTrait.php">
     <InaccessibleProperty occurrences="1">
@@ -639,11 +564,6 @@
   <file src="src/Symfony/Component/Routing/RouteCollection.php">
     <UndefinedClass occurrences="1">
       <code>\Mockery\MockInterface</code>
-    </UndefinedClass>
-  </file>
-  <file src="src/Symfony/Component/Security/Core/Authorization/TraceableAccessDecisionManager.php">
-    <UndefinedClass occurrences="1">
-      <code>DebugAccessDecisionManager</code>
     </UndefinedClass>
   </file>
   <file src="src/Symfony/Component/Security/Core/Encoder/BasePasswordEncoder.php">
@@ -744,9 +664,11 @@
       <code>parent::class</code>
     </ParentNotFound>
   </file>
-  <file src="src/Symfony/Component/Validator/Mapping/Loader/AnnotationLoader.php">
-    <UndefinedClass occurrences="1">
-      <code>\ReflectionAttribute</code>
+  <file src="src/Symfony/Component/VarDumper/Caster/DOMCaster.php">
+    <UndefinedClass occurrences="3">
+      <code>\DOMDomError</code>
+      <code>\DOMLocator</code>
+      <code>\DOMTypeinfo</code>
     </UndefinedClass>
   </file>
   <file src="src/Symfony/Component/VarDumper/Caster/DsCaster.php">
@@ -778,15 +700,7 @@
       <code>\RdKafka</code>
     </UndefinedClass>
   </file>
-  <file src="src/Symfony/Component/VarDumper/Caster/ReflectionCaster.php">
-    <UndefinedClass occurrences="1">
-      <code>\ReflectionAttribute</code>
-    </UndefinedClass>
-  </file>
   <file src="src/Symfony/Component/VarDumper/Caster/ResourceCaster.php">
-    <UndefinedDocblockClass occurrences="1">
-      <code>\CurlHandle|resource</code>
-    </UndefinedDocblockClass>
     <UndefinedFunction occurrences="3">
       <code>mysql_get_host_info($h)</code>
       <code>mysql_get_proto_info($h)</code>
@@ -829,11 +743,6 @@
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-  </file>
-  <file src="src/Symfony/Contracts/Deprecation/function.php">
-    <DuplicateFunction occurrences="1">
-      <code>function trigger_deprecation(string $package, string $version, string $message, ...$args): void</code>
-    </DuplicateFunction>
   </file>
   <file src="src/Symfony/Contracts/Service/ServiceLocatorTrait.php">
     <InvalidThrow occurrences="2">
