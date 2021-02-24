@@ -58,4 +58,7 @@ jobs:
       - name: Psalm
         run: |
           ./vendor/bin/psalm.phar --version
-          ./vendor/bin/psalm.phar --output-format=github --no-progress --stats
+          ./vendor/bin/psalm.phar --set-baseline=psalm.baseline.xml
+
+      - name: Show baseline
+        run: cat psalm.baseline.xml
